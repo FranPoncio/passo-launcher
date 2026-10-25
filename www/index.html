@@ -7,13 +7,26 @@
 <style>
   :root { --bg:#000; --card:#0d0d10; --txt:#fff; --mut:#71717a; --ok:#10b981; --cold:#38bdf8; --bad:#ef4444; --amb:#fbbf24; }
   * { box-sizing:border-box; -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent; margin:0; padding:0; }
-  html,body { height:100%; background:var(--bg); color:var(--txt); font-family:system-ui,-apple-system,Roboto,sans-serif; overflow:hidden; }
+  html,body { height:100%; background:var(--bg); color:var(--txt); font-family:system-ui,-apple-system,Roboto,sans-serif; overflow:hidden; font-variant-numeric:tabular-nums; }
   body { display:grid; grid-template-rows:56px 1fr 72px; padding:8px 14px; gap:6px; transition:background .4s; }
   button { font:inherit; color:inherit; background:none; border:none; cursor:pointer; }
   button:active { transform:scale(.94); }
 
   header { display:flex; align-items:center; justify-content:space-between; }
+  .greet { font-weight:800; letter-spacing:.2em; font-size:13px; color:#e4e4e7; text-transform:uppercase; margin-right:12px; }
   .brand { font-weight:800; letter-spacing:.2em; font-size:13px; color:#a1a1aa; text-transform:uppercase; }
+  #toast { position:fixed; top:14px; left:50%; transform:translate(-50%,-8px); background:rgba(39,39,42,.92); padding:10px 20px; border-radius:99px; font-size:13px; font-weight:800; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; z-index:60; display:flex; align-items:center; gap:10px; white-space:nowrap; }
+  #toast.on { opacity:1; transform:translate(-50%,0); }
+  #toast i { width:9px; height:9px; border-radius:50%; background:var(--ok); display:inline-block; }
+  #toast.warn i { background:var(--amb); } #toast.err i { background:var(--bad); }
+  main.lhd { grid-template-columns:1fr 1.2fr 1.1fr; }
+  main.lhd > section:nth-child(1) { order:3; } main.lhd > section:nth-child(2) { order:2; } main.lhd > section:nth-child(3) { order:1; }
+  .swatches { display:flex; gap:10px; }
+  .sw { width:46px; height:46px; border-radius:14px; background:var(--s); box-shadow:inset 0 0 0 1px #3f3f46; }
+  .sw.on { box-shadow:inset 0 0 0 3px var(--ok); }
+  .dtc { display:flex; gap:14px; align-items:center; padding:14px 16px; background:var(--card); border-radius:16px; margin-bottom:8px; }
+  .dtc b { font-size:20px; font-weight:900; color:var(--amb); min-width:78px; }
+  .dtc span { font-weight:600; color:#d4d4d8; }
   .brand b { color:var(--bad); }
   .pill { font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; padding:5px 12px; border-radius:99px; background:#052e22; color:var(--ok); margin-left:12px; }
   .pill.cold { background:#082f49; color:var(--cold); }
@@ -81,10 +94,11 @@
 </style>
 </head>
 <body>
-<div id="night"></div><div id="danger"></div>
+<div id="night"></div><div id="danger"></div><div id="toast"><i></i><span id="toastTxt"></span></div>
 
 <header>
   <div style="display:flex;align-items:center">
+    <span class="greet" id="greet"></span>
     <span class="brand">Passo <b>1.3</b></span>
     <span id="badge" class="pill sim">Sin OBD</span>
   </div>
@@ -166,6 +180,9 @@ const DEF = {
   shift: null,       // {start, km0, money, trips}
   obdAddr: '',
   mono: false,       // íconos de apps en blanco y negro
+  greet: 'Hola, Fran',
+  bg: '#000000',
+  side: 'rhd',       // rhd = volante a la derecha (apps a la derecha, cerca del conductor)
   apps: [
     { n:'Maps',    ic:'map',   c:'#34d399', pkg:'com.google.android.apps.maps' },
     { n:'Waze',    ic:'nav',   c:'#38bdf8', pkg:'com.waze' },
@@ -240,8 +257,21 @@ function renderApps(){
 document.querySelectorAll('footer button[data-ic]').forEach(b=>b.insertAdjacentHTML('afterbegin', svg(b.dataset.ic)));
 renderApps(); loadIcons();
 
-/* ================= Toast / alertas ================= */
-let tt; function toast(m){ $('alerts').textContent=m; clearTimeout(tt); tt=setTimeout(refreshAlerts,3500); }
+/* ================= Aviso flotante ================= */
+let tt; function toast(m, kind){
+  const t=$('toast'); $('toastTxt').textContent=m; t.className='on'+(kind?' '+kind:'');
+  clearTimeout(tt); tt=setTimeout(()=>t.className='',2800);
+}
+
+/* ================= Apariencia: saludo, fondo, lado del volante ================= */
+const BGS = [ ['#000000','Negro'], ['#070b14','Azul noche'], ['#0f1318','Grafito'], ['#140709','Rojo'], ['#05120e','Esmeralda'] ];
+function applyLook(){
+  $('greet').textContent = S.greet || '';
+  $('greet').style.display = S.greet ? '' : 'none';
+  document.documentElement.style.setProperty('--bg', S.bg||'#000');
+  document.querySelector('main').classList.toggle('lhd', S.side==='lhd');
+}
+applyLook();
 
 /* ================= GPS real: velocidad + km ================= */
 let gpsLast=null, speedKmh=0;
@@ -260,15 +290,19 @@ if (navigator.geolocation) {
 setInterval(save,15000);
 
 /* ================= OBD2 (ELM327 Bluetooth clásico) ================= */
-const obd = { rpm:null, temp:null, volt:null, maf:null, ok:false, sim:false };
+const obd = { rpm:null, temp:null, volt:null, maf:null, iat:null, mil:null, dtcCount:null, proto:'', ok:false, sim:false };
 let BT = window.bluetoothSerial; // plugin cordova-plugin-bluetooth-serial (se completa en deviceready)
-let buf='', waiter=null, pollTimer=null;
+let buf='', waiter=null, pollTimer=null, pollN=0;
 
-function btWrite(cmd){
+// Todos los comandos pasan por esta cola: el ELM327 contesta de a uno
+let cmdQueue = Promise.resolve();
+function cmd(c, ms){ const p = cmdQueue.then(()=>btWrite(c, ms)); cmdQueue = p.catch(()=>{}); return p; }
+
+function btWrite(cmd, ms){
   return new Promise(res=>{
     waiter = res; buf='';
-    BT.write(cmd+'\r', ()=>{}, ()=>res(''));
-    setTimeout(()=>{ if(waiter){ waiter(buf); waiter=null; } }, 1500);
+    BT.write(cmd+'\r', ()=>{}, ()=>{ waiter=null; res(''); });
+    setTimeout(()=>{ if(waiter===res){ waiter=null; res(buf); } }, ms||1500);
   });
 }
 function parseHex(resp, pid){
@@ -280,15 +314,94 @@ function parseHex(resp, pid){
   return out;
 }
 async function obdInit(){
-  for (const c of ['ATZ','ATE0','ATL0','ATS0','ATSP0']) await btWrite(c);
+  await cmd('ATZ', 4000);
+  for (const c of ['ATE0','ATL0','ATS0','ATH0','ATSP0']) await cmd(c);
+  await cmd('0100', 10000); // fuerza la detección de protocolo (puede tardar)
+  obd.proto = (await cmd('ATDPN')).replace(/[\s>]/g,'').toUpperCase();
 }
 async function obdPoll(){
   let r;
-  r = parseHex(await btWrite('010C'),'0C'); if(r&&r.length>=2) obd.rpm = ((r[0]*256)+r[1])/4;
-  r = parseHex(await btWrite('0105'),'05'); if(r&&r.length>=1) obd.temp = r[0]-40;
-  r = parseHex(await btWrite('0142'),'42'); if(r&&r.length>=2) obd.volt = ((r[0]*256)+r[1])/1000;
-  r = parseHex(await btWrite('0110'),'10'); obd.maf = (r&&r.length>=2) ? ((r[0]*256)+r[1])/100 : null;
+  r = parseHex(await cmd('010C'),'0C'); if(r&&r.length>=2) obd.rpm = ((r[0]*256)+r[1])/4;
+  r = parseHex(await cmd('0105'),'05'); if(r&&r.length>=1) obd.temp = r[0]-40;
+  r = parseHex(await cmd('0142'),'42'); if(r&&r.length>=2) obd.volt = ((r[0]*256)+r[1])/1000;
+  r = parseHex(await cmd('0110'),'10'); obd.maf = (r&&r.length>=2) ? ((r[0]*256)+r[1])/100 : null;
+  // Cada ~5 vueltas: temperatura de admisión. Cada ~25: luz de check engine y cantidad de fallas.
+  if (pollN % 5 === 0) { r = parseHex(await cmd('010F'),'0F'); obd.iat = (r&&r.length>=1) ? r[0]-40 : null; }
+  if (pollN % 25 === 0) { r = parseHex(await cmd('0101'),'01'); if(r&&r.length>=1){ obd.mil = !!(r[0]&0x80); obd.dtcCount = r[0]&0x7F; } }
+  pollN++;
   obd.ok = true; renderObd();
+}
+
+/* ---------- Códigos de falla (DTC) reales: modo 03 leer, modo 04 borrar ---------- */
+const DTC_INFO = {
+  P0100:'Sensor MAF (caudal de aire): falla de circuito', P0101:'Sensor MAF: lectura fuera de rango', P0102:'Sensor MAF: señal baja', P0103:'Sensor MAF: señal alta',
+  P0110:'Sensor de temperatura de admisión: falla de circuito', P0115:'Sensor de temperatura del refrigerante: falla de circuito', P0116:'Sensor de temperatura del refrigerante: lectura fuera de rango',
+  P0120:'Sensor de posición del acelerador (TPS): falla de circuito', P0125:'El motor tarda en llegar a temperatura (revisar termostato)', P0128:'Termostato: temperatura del refrigerante por debajo de lo normal',
+  P0130:'Sonda lambda (antes del catalizador): falla de circuito', P0133:'Sonda lambda (antes del catalizador): respuesta lenta', P0135:'Sonda lambda (antes del catalizador): falla del calefactor',
+  P0136:'Sonda lambda (después del catalizador): falla de circuito', P0141:'Sonda lambda (después del catalizador): falla del calefactor',
+  P0171:'Mezcla demasiado pobre (posible entrada de aire o MAF sucio)', P0172:'Mezcla demasiado rica',
+  P0300:'Fallo de encendido aleatorio', P0301:'Fallo de encendido en cilindro 1', P0302:'Fallo de encendido en cilindro 2', P0303:'Fallo de encendido en cilindro 3', P0304:'Fallo de encendido en cilindro 4',
+  P0325:'Sensor de detonación: falla de circuito', P0335:'Sensor de posición del cigüeñal: falla de circuito', P0340:'Sensor de posición del árbol de levas: falla de circuito',
+  P0420:'Eficiencia del catalizador por debajo del mínimo', P0440:'Sistema de evaporación (EVAP): falla', P0441:'EVAP: flujo de purga incorrecto', P0442:'EVAP: pérdida chica (revisar tapa de nafta)',
+  P0446:'EVAP: falla en el control de ventilación', P0455:'EVAP: pérdida grande (revisar tapa de nafta)', P0500:'Sensor de velocidad del vehículo: falla',
+  P0505:'Sistema de control de ralentí: falla', P0560:'Voltaje del sistema: falla', P0700:'La caja automática reporta una falla (leer su propio código)'
+};
+function dtcDesc(c){
+  if (DTC_INFO[c]) return DTC_INFO[c];
+  if (/^P1/.test(c)) return 'Código propio de Toyota/Daihatsu: buscalo junto con "Passo"';
+  return 'Buscalo en internet con el código exacto';
+}
+function decodeDtc(a,b){
+  if (a===0 && b===0) return null;
+  return 'PCBU'[a>>6] + ((a>>4)&3) + (a&15).toString(16).toUpperCase() + b.toString(16).toUpperCase().padStart(2,'0');
+}
+function parseDtcResponse(resp){
+  if (/NO ?DATA/i.test(resp)) return [];
+  const isCan = /^A?[6-9AB]$/.test(obd.proto);
+  const lines = resp.toUpperCase().split(/[\r\n]+/)
+    .map(l=>l.replace(/^\s*[0-9A-F]:/,'').replace(/[\s>]/g,''))
+    .filter(l=>/^[0-9A-F]+$/.test(l) && l.length>3);
+  const bytes = [];
+  if (isCan) {
+    const all = lines.join(''); const i = all.indexOf('43'); if (i<0) return null;
+    const h = all.slice(i+4); // saltea "43" y el byte de cantidad
+    for (let j=0;j+1<h.length;j+=2) bytes.push(parseInt(h.substr(j,2),16));
+  } else {
+    let found=false;
+    lines.forEach(l=>{ if(!l.startsWith('43')) return; found=true; const h=l.slice(2,14); for(let j=0;j+1<h.length;j+=2) bytes.push(parseInt(h.substr(j,2),16)); });
+    if (!found) return null;
+  }
+  const codes=[];
+  for (let j=0;j+1<bytes.length;j+=2){ const c=decodeDtc(bytes[j],bytes[j+1]); if(c && !codes.includes(c)) codes.push(c); }
+  return codes;
+}
+async function scanDtc(){
+  if (obd.sim) { toast('Modo demo: no hay auto conectado para escanear','warn'); return; }
+  if (!BT || !obd.ok) { toast('Conectá el OBD primero','warn'); return; }
+  $('dtcBox').innerHTML = '<div class="item">Leyendo la ECU…</div>';
+  const resp = await cmd('03', 8000);
+  const codes = parseDtcResponse(resp);
+  if (codes === null) {
+    $('dtcBox').innerHTML = `<div class="item"><span>La ECU no respondió al pedido de códigos<small>Respuesta: ${resp.replace(/[\r\n>]+/g,' ').trim().slice(0,60)||'(vacía)'}. Probá con el motor en contacto.</small></span></div>`;
+    return;
+  }
+  S.lastScan = { t:Date.now(), codes }; save();
+  renderDtc();
+}
+function renderDtc(){
+  const s=S.lastScan; if(!s){ $('dtcBox').innerHTML=''; return; }
+  const when = new Date(s.t).toLocaleString();
+  $('dtcBox').innerHTML = s.codes.length
+    ? s.codes.map(c=>`<div class="dtc"><b>${c}</b><span>${dtcDesc(c)}</span></div>`).join('') +
+      `<div class="item"><span>Borrar códigos<small>Apaga el check engine, pero no arregla la causa: si la falla sigue, el código vuelve.</small></span><button class="btn stop" onclick="clearDtc()">Borrar</button></div>` +
+      `<small style="color:var(--mut)">Escaneo: ${when}</small>`
+    : `<div class="item"><span>Sin códigos de falla guardados<small>Escaneo: ${when}</small></span></div>`;
+}
+async function clearDtc(){
+  if (!confirm('¿Borrar los códigos de falla? Hacelo con el motor en contacto (sin arrancar). El check engine se apaga, pero si el problema sigue, vuelve a aparecer.')) return;
+  const r = await cmd('04', 8000);
+  if (/44/.test(r.replace(/\s/g,''))) { toast('Códigos borrados'); S.lastScan={t:Date.now(),codes:[]}; save(); renderDtc(); }
+  else toast('La ECU no aceptó el borrado','err');
 }
 function connectObd(addr){
   if(!BT){ toast('OBD real solo en la APK. Usá modo demo.'); return; }
@@ -325,8 +438,9 @@ function renderObd(){
   $('danger').style.display = hot?'block':'none';
   const b=$('badge');
   b.className='pill'+(hot?' bad':cold?' cold':'');
-  b.textContent = obd.sim?'Demo': !obd.ok?'Sin OBD': hot?'⚠ Temp '+Math.round(t)+'°': cold?'Motor frío':'● Motor óptimo';
+  b.textContent = obd.sim?'Demo': !obd.ok?'Sin OBD': hot?'⚠ Temp '+Math.round(t)+'°': obd.mil?'⚠ Check engine'+(obd.dtcCount?' ('+obd.dtcCount+')':''): cold?'Motor frío':'● Motor óptimo';
   if(!obd.ok && !obd.sim) b.classList.add('sim');
+  if(obd.mil && !hot && !obd.sim) b.className='pill bad';
   refreshAlerts(hot,lowV);
 }
 
@@ -406,15 +520,25 @@ function openObd(){
   let body=`<h2>OBD2 · K3-VE</h2>
     <div class="item"><span>Agua<small>Temperatura refrigerante</small></span><b>${obd.temp!=null?Math.round(obd.temp)+'°C':'--'}</b></div>
     <div class="item"><span>Batería<small>Voltaje</small></span><b>${obd.volt!=null?obd.volt.toFixed(1)+' V':'--'}</b></div>
+    <div class="item"><span>Admisión<small>Temperatura del aire que entra al motor</small></span><b>${obd.iat!=null?Math.round(obd.iat)+'°C':'--'}</b></div>
     <div class="item"><span>MAF<small>Si el auto no lo reporta, L/100 queda en --</small></span><b>${obd.maf!=null?obd.maf.toFixed(1)+' g/s':'no disponible'}</b></div>
-    <div class="row" style="margin:10px 0"><button class="btn amb" onclick="startSim()">Modo demo</button></div>`;
+    <div class="item"><span>Check engine<small>${obd.proto?'Protocolo '+obd.proto:'Se lee al conectar'}</small></span><b>${obd.mil==null?'--':obd.mil?'ENCENDIDO':'apagado'}</b></div>
+    <h2 style="margin-top:12px">Códigos de falla</h2>
+    <div class="row" style="margin-bottom:10px"><button class="btn go" onclick="scanDtc()">Escanear códigos</button><button class="btn amb" onclick="startSim()">Modo demo</button></div>
+    <div id="dtcBox"></div>`;
   if(BT){ body+=`<h2 style="margin-top:12px">Adaptadores emparejados</h2><div id="btList">Buscando…</div>`; }
   else body+=`<div class="item">Conexión Bluetooth disponible solo dentro de la APK.</div>`;
   openModal(body);
+  renderDtc();
   if(BT) BT.list(l=>{ $('btList').innerHTML = l.length? l.map(d=>`<div class="item"><span>${d.name||'(sin nombre)'}<small>${d.address}</small></span><button class="btn go" onclick="connectObd('${d.address}')">Conectar</button></div>`).join('') : 'Emparejá primero el ELM327 en Ajustes de Android (PIN 1234 o 0000).'; }, ()=>{ $('btList').textContent='Error leyendo Bluetooth'; });
 }
+function setLook(k,v){ S[k]=v; save(); applyLook(); openSettings(); }
+function editGreet(){ const g=prompt('Saludo (dejalo vacío para ocultarlo)', S.greet||''); if(g!==null) setLook('greet', g.trim()); }
 function openSettings(){
   openModal(`<h2>Ajustes</h2>`+
+    `<div class="item"><span>Saludo<small>${S.greet||'(oculto)'}</small></span><button class="btn" onclick="editGreet()">Cambiar</button></div>`+
+    `<div class="item"><span>Color de fondo<small>${(BGS.find(b=>b[0]===S.bg)||BGS[0])[1]}</small></span><span class="swatches">${BGS.map(b=>`<button class="sw ${S.bg===b[0]?'on':''}" style="--s:${b[0]}" onclick="setLook('bg','${b[0]}')" aria-label="${b[1]}"></button>`).join('')}</span></div>`+
+    `<div class="item"><span>Lado del volante<small>${S.side==='lhd'?'Izquierda: apps a la izquierda':'Derecha (Passo japonés): apps a la derecha, cerca tuyo'}</small></span><button class="btn" onclick="setLook('side','${S.side==='lhd'?'rhd':'lhd'}')">Invertir lados</button></div>`+
     `<div class="item"><span>Íconos de apps<small>${S.mono?'Monocromo: integrados al tema oscuro':'Color: los originales de cada app'}</small></span><button class="btn ${S.mono?'':'go'}" onclick="S.mono=!S.mono;save();renderApps();openSettings()">${S.mono?'Pasar a color':'Pasar a monocromo'}</button></div>`+
     S.apps.map((a,i)=>`<div class="item"><span>${a.n}<small>${a.pkg}${realIcons[a.pkg]?'':' · no instalada o sin detectar'}</small></span><button class="btn" onclick="editApp(${i})">Cambiar paquete</button></div>`).join('')+
     `<div class="item"><span>Adaptador OBD guardado<small>${S.obdAddr||'ninguno'}</small></span>${S.obdAddr?`<button class="btn go" onclick="connectObd(S.obdAddr)">Reconectar</button>`:''}</div>`);

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Passo Launcher</title>
+<style>
+  :root { --bg:#000; --card:#0d0d10; --txt:#fff; --mut:#71717a; --ok:#10b981; --cold:#38bdf8; --bad:#ef4444; --amb:#fbbf24; }
+  * { box-sizing:border-box; -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent; margin:0; padding:0; }
+  html,body { height:100%; background:var(--bg); color:var(--txt); font-family:system-ui,-apple-system,Roboto,sans-serif; overflow:hidden; }
+  body { display:grid; grid-template-rows:56px 1fr 72px; padding:8px 14px; gap:6px; transition:background .4s; }
+  button { font:inherit; color:inherit; background:none; border:none; cursor:pointer; }
+  button:active { transform:scale(.94); }
+
+  header { display:flex; align-items:center; justify-content:space-between; }
+  .brand { font-weight:800; letter-spacing:.2em; font-size:13px; color:#a1a1aa; text-transform:uppercase; }
+  .brand b { color:var(--bad); }
+  .pill { font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; padding:5px 12px; border-radius:99px; background:#052e22; color:var(--ok); margin-left:12px; }
+  .pill.cold { background:#082f49; color:var(--cold); }
+  .pill.bad  { background:var(--bad); color:#fff; }
+  .pill.sim  { background:#3b2f05; color:var(--amb); }
+  #clock { font-size:34px; font-weight:900; }
+
+  main { display:grid; grid-template-columns:1.1fr 1.2fr 1fr; gap:14px; min-height:0; }
+  .col { display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:0; }
+
+  /* Izquierda */
+  .gauge { position:relative; width:min(100%,300px); aspect-ratio:1/.85; }
+  .gauge svg { width:100%; height:100%; }
+  .gauge .c { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding-top:12%; }
+  #speed { font-size:clamp(56px,9vw,96px); font-weight:900; line-height:1; letter-spacing:-.04em; }
+  .unit { font-size:11px; letter-spacing:.2em; color:var(--mut); font-weight:700; text-transform:uppercase; margin-top:4px; }
+  #rpm { font-size:14px; font-weight:800; color:var(--ok); margin-top:6px; }
+  .tiles { display:flex; gap:22px; margin-top:6px; }
+  .tile { text-align:center; }
+  .tile small { display:block; font-size:10px; letter-spacing:.15em; color:var(--mut); font-weight:700; text-transform:uppercase; }
+  .tile span { font-size:26px; font-weight:900; }
+
+  /* Centro */
+  .panel { width:100%; background:var(--card); border-radius:22px; padding:16px 18px; }
+  .panel h3 { font-size:11px; letter-spacing:.2em; color:var(--mut); text-transform:uppercase; margin-bottom:10px; }
+  .shift-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; text-align:center; margin-bottom:12px; }
+  .shift-grid div b { display:block; font-size:24px; font-weight:900; }
+  .shift-grid div small { font-size:10px; color:var(--mut); letter-spacing:.1em; text-transform:uppercase; }
+  .row { display:flex; gap:10px; }
+  .btn { flex:1; padding:14px 8px; border-radius:16px; background:#18181b; font-weight:800; font-size:13px; text-transform:uppercase; letter-spacing:.06em; }
+  .btn.go { background:#064e3b; color:#6ee7b7; }
+  .btn.stop { background:#7f1d1d; color:#fecaca; }
+  .btn.amb { background:#3b2f05; color:var(--amb); }
+  .alerts { width:100%; margin-top:10px; font-size:13px; font-weight:700; color:var(--amb); text-align:center; min-height:20px; }
+
+  /* Derecha */
+  .apps { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; width:100%; }
+  .app { background:var(--card); border-radius:20px; padding:16px 6px; display:flex; flex-direction:column; align-items:center; gap:6px; font-size:13px; font-weight:800; color:#d4d4d8; }
+  .app i { font-style:normal; font-size:34px; line-height:1; }
+
+  footer { display:flex; align-items:center; justify-content:space-around; background:var(--card); border-radius:24px; padding:0 10px; }
+  footer button { display:flex; flex-direction:column; align-items:center; gap:2px; font-size:11px; font-weight:700; color:#a1a1aa; padding:6px 14px; }
+  footer button i { font-style:normal; font-size:24px; }
+
+  /* Modal */
+  #modal { position:fixed; inset:0; background:rgba(0,0,0,.96); display:none; flex-direction:column; padding:22px 40px; z-index:30; overflow:auto; }
+  #modal.on { display:flex; }
+  #modal h2 { font-size:22px; font-weight:900; margin-bottom:14px; }
+  #modal .x { position:absolute; right:26px; top:16px; font-size:30px; color:#a1a1aa; }
+  .item { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:var(--card); border-radius:16px; margin-bottom:8px; font-weight:700; gap:10px; }
+  .item small { color:var(--mut); font-weight:600; display:block; margin-top:2px; }
+  .item .btn { flex:none; padding:10px 16px; }
+  input { background:#18181b; color:#fff; border:none; border-radius:12px; padding:12px 14px; font:inherit; width:130px; }
+
+  #night { position:fixed; inset:0; background:#000; opacity:0; pointer-events:none; transition:opacity .4s; z-index:40; }
+  #danger { position:fixed; inset:0; pointer-events:none; z-index:20; display:none; background:radial-gradient(circle,transparent 55%,rgba(239,68,68,.5) 100%); animation:pulse 1.2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:0} 50%{opacity:1} }
+</style>
+</head>
+<body>
+<div id="night"></div><div id="danger"></div>
+
+<header>
+  <div style="display:flex;align-items:center">
+    <span class="brand">Passo <b>1.3</b></span>
+    <span id="badge" class="pill sim">Sin OBD</span>
+  </div>
+  <div id="clock">--:--</div>
+</header>
+
+<main>
+  <!-- IZQUIERDA: datos del motor -->
+  <section class="col">
+    <div class="gauge" onclick="openObd()">
+      <svg viewBox="0 0 200 150">
+        <path d="M 25 130 A 80 80 0 1 1 175 130" fill="none" stroke="#18181b" stroke-width="10" stroke-linecap="round"/>
+        <path id="arc" d="M 25 130 A 80 80 0 1 1 175 130" fill="none" stroke="#10b981" stroke-width="10" stroke-linecap="round" stroke-dasharray="330" stroke-dashoffset="330" style="transition:stroke-dashoffset .3s,stroke .3s"/>
+      </svg>
+      <div class="c">
+        <div id="speed">0</div>
+        <div class="unit">km/h GPS</div>
+        <div id="rpm">-- RPM</div>
+      </div>
+    </div>
+    <div class="tiles">
+      <div class="tile"><small>Agua</small><span id="temp">--</span></div>
+      <div class="tile"><small>Batería</small><span id="volt">--</span></div>
+      <div class="tile"><small>L/100</small><span id="cons">--</span></div>
+    </div>
+  </section>
+
+  <!-- CENTRO: turno + alertas -->
+  <section class="col">
+    <div class="panel">
+      <h3>Turno · Delivery</h3>
+      <div class="shift-grid">
+        <div><b id="shTime">0:00</b><small>Tiempo</small></div>
+        <div><b id="shKm">0.0</b><small>Km</small></div>
+        <div><b id="shMoney">$0</b><small>Ganado</small></div>
+        <div><b id="shHr">$0</b><small>Por hora</small></div>
+        <div><b id="shKmM">$0.00</b><small>Por km</small></div>
+        <div><b id="shTrips">0</b><small>Pedidos</small></div>
+      </div>
+      <div class="row">
+        <button class="btn go" id="shBtn" onclick="toggleShift()">Iniciar turno</button>
+        <button class="btn amb" onclick="addTrip()">+ Pedido</button>
+      </div>
+    </div>
+    <div class="alerts" id="alerts"></div>
+  </section>
+
+  <!-- DERECHA: accesos -->
+  <section class="col">
+    <div class="apps" id="apps"></div>
+  </section>
+</main>
+
+<footer>
+  <button onclick="saveParking()"><i>📍</i><span id="parkLbl">Parking</span></button>
+  <button onclick="openMaint()"><i>🔧</i>Service</button>
+  <button onclick="openFuel()"><i>⛽</i>Nafta</button>
+  <button onclick="openObd()"><i>📡</i>OBD</button>
+  <button onclick="openSettings()"><i>⚙️</i>Ajustes</button>
+  <button onclick="openAndroid('settings')"><i>🛠</i>Android</button>
+  <button onclick="toggleNight()"><i>🌙</i>Noche</button>
+</footer>
+
+<div id="modal"><button class="x" onclick="closeModal()">✕</button><div id="modalBody"></div></div>
+
+<script>
+/* ================= Estado persistente ================= */
+const DEF = {
+  odo: 0, // km totales acumulados por GPS (ajustable a mano)
+  maint: [
+    { name:'Aceite motor',  everyKm:5000,  lastKm:0 },
+    { name:'Filtro de aire',everyKm:15000, lastKm:0 },
+    { name:'Bujías',        everyKm:40000, lastKm:0 },
+    { name:'Frenos (revisar)', everyKm:10000, lastKm:0 }
+  ],
+  dates: [ { name:'WOF', due:'' }, { name:'Rego', due:'' } ],
+  fuel: [],
+  parking: null,
+  shift: null,       // {start, km0, money, trips}
+  obdAddr: '',
+  apps: [
+    { n:'Maps',   i:'🗺️', pkg:'com.google.android.apps.maps' },
+    { n:'Waze',   i:'🧭', pkg:'com.waze' },
+    { n:'Uber',   i:'🚗', pkg:'com.ubercab.driver' },
+    { n:'DiDi',   i:'🛵', pkg:'com.didiglobal.driver' },
+    { n:'Spotify',i:'🎵', pkg:'com.spotify.music' },
+    { n:'YT Music',i:'▶️', pkg:'com.google.android.apps.youtube.music' }
+  ]
+};
+let S;
+try { S = Object.assign({}, DEF, JSON.parse(localStorage.getItem('passo')||'{}')); } catch(e){ S = {...DEF}; }
+const save = () => { try{ localStorage.setItem('passo', JSON.stringify(S)); }catch(e){} };
+const $ = id => document.getElementById(id);
+
+/* ================= Reloj ================= */
+setInterval(()=>{ const d=new Date(); $('clock').textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); },1000);
+
+/* ================= Lanzar apps (nativo vía Capacitor) ================= */
+function openApp(pkg){
+  const AL = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AppLauncher;
+  if (AL) AL.openUrl({ url: pkg }).catch(()=>toast('No se pudo abrir '+pkg));
+  else toast('Solo funciona dentro de la app (APK)');
+}
+function openAndroid(){ const AL=window.Capacitor?.Plugins?.AppLauncher; if(AL) AL.openUrl({url:'com.android.settings'}); else toast('Solo en la APK'); }
+function renderApps(){
+  $('apps').innerHTML = S.apps.map((a,i)=>`<button class="app" onclick="openApp('${a.pkg}')"><i>${a.i}</i>${a.n}</button>`).join('');
+}
+renderApps();
+
+/* ================= Toast / alertas ================= */
+let tt; function toast(m){ $('alerts').textContent=m; clearTimeout(tt); tt=setTimeout(refreshAlerts,3500); }
+
+/* ================= GPS real: velocidad + km ================= */
+let gpsLast=null, speedKmh=0;
+function hav(a,b,c,d){ const R=6371,r=x=>x*Math.PI/180; const dl=r(c-a),dn=r(d-b); const h=Math.sin(dl/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(dn/2)**2; return 2*R*Math.asin(Math.sqrt(h)); }
+if (navigator.geolocation) {
+  navigator.geolocation.watchPosition(p=>{
+    const c=p.coords;
+    speedKmh = c.speed!=null && !isNaN(c.speed) ? Math.max(0,c.speed*3.6) : speedKmh;
+    if (c.accuracy<=30) {
+      if (gpsLast) { const d=hav(gpsLast.lat,gpsLast.lon,c.latitude,c.longitude); if (d>0.005 && d<1) { S.odo+=d; } }
+      gpsLast={lat:c.latitude,lon:c.longitude};
+    }
+    $('speed').textContent=Math.round(speedKmh<3?0:speedKmh);
+  }, ()=>{}, { enableHighAccuracy:true, maximumAge:1000, timeout:10000 });
+}
+setInterval(save,15000);
+
+/* ================= OBD2 (ELM327 Bluetooth clásico) ================= */
+const obd = { rpm:null, temp:null, volt:null, maf:null, ok:false, sim:false };
+let BT = window.bluetoothSerial; // plugin cordova-plugin-bluetooth-serial (se completa en deviceready)
+let buf='', waiter=null, pollTimer=null;
+
+function btWrite(cmd){
+  return new Promise(res=>{
+    waiter = res; buf='';
+    BT.write(cmd+'\r', ()=>{}, ()=>res(''));
+    setTimeout(()=>{ if(waiter){ waiter(buf); waiter=null; } }, 1500);
+  });
+}
+function parseHex(resp, pid){
+  const s = resp.replace(/[\s>]/g,'').toUpperCase();
+  const k = '41'+pid; const i = s.indexOf(k);
+  if (i<0) return null;
+  const h = s.slice(i+k.length); const out=[];
+  for (let j=0;j+1<h.length;j+=2) out.push(parseInt(h.substr(j,2),16));
+  return out;
+}
+async function obdInit(){
+  for (const c of ['ATZ','ATE0','ATL0','ATS0','ATSP0']) await btWrite(c);
+}
+async function obdPoll(){
+  let r;
+  r = parseHex(await btWrite('010C'),'0C'); if(r&&r.length>=2) obd.rpm = ((r[0]*256)+r[1])/4;
+  r = parseHex(await btWrite('0105'),'05'); if(r&&r.length>=1) obd.temp = r[0]-40;
+  r = parseHex(await btWrite('0142'),'42'); if(r&&r.length>=2) obd.volt = ((r[0]*256)+r[1])/1000;
+  r = parseHex(await btWrite('0110'),'10'); obd.maf = (r&&r.length>=2) ? ((r[0]*256)+r[1])/100 : null;
+  obd.ok = true; renderObd();
+}
+function connectObd(addr){
+  if(!BT){ toast('OBD real solo en la APK. Usá modo demo.'); return; }
+  BT.connect(addr, async ()=>{
+    S.obdAddr=addr; save();
+    BT.subscribe('>', d=>{ buf+=d; if(waiter){ const w=waiter; waiter=null; w(buf);} });
+    await obdInit(); obd.sim=false; clearInterval(pollTimer);
+    const loop=async()=>{ try{ await obdPoll(); }catch(e){} pollTimer=setTimeout(loop,400); }; loop();
+    toast('OBD conectado'); closeModal();
+  }, ()=>{ toast('No pude conectar al OBD'); obd.ok=false; renderObd(); });
+}
+// Modo demo para probar la pantalla sin auto
+function startSim(){
+  obd.sim=true; clearInterval(pollTimer);
+  let t=0; pollTimer=setInterval(()=>{ t+=0.1;
+    obd.rpm=1200+Math.abs(Math.sin(t))*2200; obd.temp=Math.min(104,60+t*2); obd.volt=14.1-Math.random()*.1; obd.maf=3+Math.abs(Math.sin(t))*8; obd.ok=true;
+    if(!navigator.geolocation||!gpsLast){ speedKmh=Math.abs(Math.sin(t))*80; $('speed').textContent=Math.round(speedKmh); }
+    renderObd();
+  },400); closeModal();
+}
+function renderObd(){
+  const rpm=obd.rpm, t=obd.temp, v=obd.volt;
+  $('rpm').textContent = rpm!=null ? Math.round(rpm)+' RPM' : '-- RPM';
+  $('temp').textContent = t!=null ? Math.round(t)+'°' : '--';
+  $('volt').innerHTML = v!=null ? v.toFixed(1)+'<small style="font-size:12px;color:#71717a">V</small>' : '--';
+  // Consumo instantáneo estimado con MAF (si el auto lo reporta): L/h = MAF/(14.7*740)*3600
+  let c='--';
+  if (obd.maf!=null && speedKmh>8) { const lph=obd.maf/(14.7*740)*3600; c=(lph/speedKmh*100).toFixed(1); }
+  $('cons').textContent=c;
+  const arc=$('arc'); const frac=Math.min(1,(rpm||0)/6500);
+  arc.style.strokeDashoffset = 330-330*frac;
+  const hot=t!=null&&t>=100, lowV=v!=null&&v<12.0 , cold=t!=null&&t<60;
+  arc.setAttribute('stroke', hot?'#ef4444': cold?'#38bdf8':'#10b981');
+  $('danger').style.display = hot?'block':'none';
+  const b=$('badge');
+  b.className='pill'+(hot?' bad':cold?' cold':'');
+  b.textContent = obd.sim?'Demo': !obd.ok?'Sin OBD': hot?'⚠ Temp '+Math.round(t)+'°': cold?'Motor frío':'● Motor óptimo';
+  if(!obd.ok && !obd.sim) b.classList.add('sim');
+  refreshAlerts(hot,lowV);
+}
+
+/* ================= Alertas (service, WOF/rego, batería) ================= */
+function refreshAlerts(hot,lowV){
+  const a=[];
+  if(hot) a.push('⚠ Motor recalentado: parate');
+  if(lowV) a.push('⚠ Batería baja (<12 V)');
+  S.maint.forEach(m=>{ const left=m.everyKm-(S.odo-m.lastKm); if(left<=0) a.push('🔧 '+m.name+' vencido'); else if(left<500) a.push('🔧 '+m.name+' en '+Math.round(left)+' km'); });
+  S.dates.forEach(d=>{ if(!d.due) return; const days=Math.ceil((new Date(d.due)-new Date())/864e5); if(days<0) a.push('📅 '+d.name+' VENCIDO'); else if(days<=30) a.push('📅 '+d.name+' en '+days+' días'); });
+  $('alerts').textContent = a.slice(0,2).join('   ·   ');
+}
+
+/* ================= Turno delivery ================= */
+function toggleShift(){
+  if(!S.shift){ S.shift={start:Date.now(),km0:S.odo,money:0,trips:0}; }
+  else if(confirm('¿Terminar turno?')){ const s=S.shift; showShiftSummary(s); S.shift=null; }
+  save(); renderShift();
+}
+function addTrip(){
+  if(!S.shift){ toast('Iniciá el turno primero'); return; }
+  const v=parseFloat(prompt('Ganancia del pedido ($)'));
+  if(!isNaN(v)&&v>0){ S.shift.money+=v; S.shift.trips++; save(); renderShift(); }
+}
+function showShiftSummary(s){
+  const h=(Date.now()-s.start)/36e5, km=S.odo-s.km0;
+  openModal(`<h2>Resumen del turno</h2>
+    <div class="item">Tiempo<b>${h.toFixed(1)} h</b></div>
+    <div class="item">Km<b>${km.toFixed(1)}</b></div>
+    <div class="item">Ganado<b>$${s.money.toFixed(2)}</b></div>
+    <div class="item">Por hora<b>$${(s.money/Math.max(h,.01)).toFixed(2)}</b></div>
+    <div class="item">Por km<b>$${(s.money/Math.max(km,.1)).toFixed(2)}</b></div>`);
+}
+function renderShift(){
+  const s=S.shift;
+  $('shBtn').textContent = s?'Terminar turno':'Iniciar turno';
+  $('shBtn').className = 'btn '+(s?'stop':'go');
+  if(!s){ ['shTime','shKm','shMoney','shHr','shKmM','shTrips'].forEach(i=>$(i).textContent=i=='shTime'?'0:00':i=='shKm'?'0.0':i=='shTrips'?'0':'$0'); return; }
+  const ms=Date.now()-s.start, h=ms/36e5, km=S.odo-s.km0;
+  $('shTime').textContent=Math.floor(h)+':'+String(Math.floor((ms/6e4)%60)).padStart(2,'0');
+  $('shKm').textContent=km.toFixed(1);
+  $('shMoney').textContent='$'+s.money.toFixed(0);
+  $('shHr').textContent='$'+(s.money/Math.max(h,.05)).toFixed(0);
+  $('shKmM').textContent='$'+(s.money/Math.max(km,.1)).toFixed(2);
+  $('shTrips').textContent=s.trips;
+}
+setInterval(renderShift,5000); renderShift();
+
+/* ================= Parking ================= */
+function saveParking(){
+  if(!gpsLast){ toast('Sin señal GPS todavía'); return; }
+  S.parking={lat:gpsLast.lat,lon:gpsLast.lon,t:Date.now()}; save(); $('parkLbl').textContent='Guardado ✓'; setTimeout(()=>$('parkLbl').textContent='Parking',2500);
+  toast('Parking guardado');
+}
+
+/* ================= Modales ================= */
+function openModal(h){ $('modalBody').innerHTML=h; $('modal').classList.add('on'); }
+function closeModal(){ $('modal').classList.remove('on'); refreshAlerts(); }
+
+function openMaint(){
+  openModal(`<h2>Service · odómetro ${Math.round(S.odo)} km</h2>
+    <div class="item"><span>Corregir odómetro (km del tablero)</span><span><input id="odoIn" type="number" value="${Math.round(S.odo)}"> <button class="btn amb" onclick="S.odo=+$('odoIn').value;save();openMaint()">OK</button></span></div>`+
+    S.maint.map((m,i)=>{ const left=Math.round(m.everyKm-(S.odo-m.lastKm)); return `<div class="item"><span>${m.name}<small>${left>0?'Faltan '+left+' km':'Vencido hace '+(-left)+' km'} (cada ${m.everyKm})</small></span><button class="btn go" onclick="S.maint[${i}].lastKm=S.odo;save();openMaint()">Hecho hoy</button></div>`; }).join('')+
+    S.dates.map((d,i)=>`<div class="item"><span>${d.name}<small>Vence</small></span><input type="date" value="${d.due}" onchange="S.dates[${i}].due=this.value;save()"></div>`).join(''));
+}
+function openFuel(){
+  const f=S.fuel; let avg='--';
+  const full=f.filter(x=>x.full);
+  if(full.length>=2){ const a=full[0], b=full[full.length-1]; const km=b.odo-a.odo; const L=full.slice(1).reduce((s,x)=>s+x.liters,0); if(km>0) avg=(L/km*100).toFixed(1); }
+  openModal(`<h2>Nafta · promedio real: ${avg} L/100km</h2>
+    <div class="item"><span>Cargué (litros)</span><span><input id="fl" type="number" step="0.01"> <button class="btn go" onclick="addFuel(true)">Tanque lleno</button> <button class="btn" onclick="addFuel(false)">Parcial</button></span></div>`+
+    f.slice(-6).reverse().map(x=>`<div class="item"><span>${new Date(x.t).toLocaleDateString()} · ${x.liters} L<small>${Math.round(x.odo)} km · ${x.full?'lleno':'parcial'}</small></span></div>`).join(''));
+}
+function addFuel(full){ const l=parseFloat($('fl').value); if(!(l>0)) return; S.fuel.push({t:Date.now(),liters:l,odo:S.odo,full}); save(); openFuel(); }
+
+function openObd(){
+  let body=`<h2>OBD2 · K3-VE</h2>
+    <div class="item"><span>Agua<small>Temperatura refrigerante</small></span><b>${obd.temp!=null?Math.round(obd.temp)+'°C':'--'}</b></div>
+    <div class="item"><span>Batería<small>Voltaje</small></span><b>${obd.volt!=null?obd.volt.toFixed(1)+' V':'--'}</b></div>
+    <div class="item"><span>MAF<small>Si el auto no lo reporta, L/100 queda en --</small></span><b>${obd.maf!=null?obd.maf.toFixed(1)+' g/s':'no disponible'}</b></div>
+    <div class="row" style="margin:10px 0"><button class="btn amb" onclick="startSim()">Modo demo</button></div>`;
+  if(BT){ body+=`<h2 style="margin-top:12px">Adaptadores emparejados</h2><div id="btList">Buscando…</div>`; }
+  else body+=`<div class="item">Conexión Bluetooth disponible solo dentro de la APK.</div>`;
+  openModal(body);
+  if(BT) BT.list(l=>{ $('btList').innerHTML = l.length? l.map(d=>`<div class="item"><span>${d.name||'(sin nombre)'}<small>${d.address}</small></span><button class="btn go" onclick="connectObd('${d.address}')">Conectar</button></div>`).join('') : 'Emparejá primero el ELM327 en Ajustes de Android (PIN 1234 o 0000).'; }, ()=>{ $('btList').textContent='Error leyendo Bluetooth'; });
+}
+function openSettings(){
+  openModal(`<h2>Ajustes</h2>`+
+    S.apps.map((a,i)=>`<div class="item"><span>${a.i} ${a.n}<small>${a.pkg}</small></span><button class="btn" onclick="editApp(${i})">Cambiar paquete</button></div>`).join('')+
+    `<div class="item"><span>Adaptador OBD guardado<small>${S.obdAddr||'ninguno'}</small></span>${S.obdAddr?`<button class="btn go" onclick="connectObd(S.obdAddr)">Reconectar</button>`:''}</div>`);
+}
+function editApp(i){ const p=prompt('Nombre de paquete Android', S.apps[i].pkg); if(p){ S.apps[i].pkg=p.trim(); save(); renderApps(); openSettings(); } }
+
+/* ================= Noche ================= */
+let night=false; function toggleNight(){ night=!night; $('night').style.opacity=night?.65:0; }
+
+/* ================= Auto-reconexión OBD al arrancar ================= */
+document.addEventListener('deviceready',()=>{ BT = window.bluetoothSerial; if(S.obdAddr && BT) connectObd(S.obdAddr); });
+renderObd(); refreshAlerts();
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "appId": "com.fran.passo",
+  "appName": "Passo Launcher",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#000000"
+  }
+}

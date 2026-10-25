@@ -62,6 +62,7 @@ import java.util.ArrayList;
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        registerPlugin(AppIconsPlugin.class);
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         hideSystemBars();
@@ -90,4 +91,63 @@ public class MainActivity extends BridgeActivity {
 }
 `);
 
-console.log('Android parcheado: HOME + horizontal + permisos + MainActivity');
+// 5) Plugin propio: devuelve el ícono real de cada app instalada (como data URL PNG)
+fs.writeFileSync(path.join(javaDir, 'AppIconsPlugin.java'), `package com.fran.passo;
+
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
+import android.util.Base64;
+import com.getcapacitor.JSArray;
+import com.getcapacitor.JSObject;
+import com.getcapacitor.Plugin;
+import com.getcapacitor.PluginCall;
+import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.CapacitorPlugin;
+import java.io.ByteArrayOutputStream;
+
+@CapacitorPlugin(name = "AppIcons")
+public class AppIconsPlugin extends Plugin {
+
+    @PluginMethod
+    public void get(PluginCall call) {
+        JSArray packages = call.getArray("packages");
+        JSObject icons = new JSObject();
+        JSObject labels = new JSObject();
+        PackageManager pm = getContext().getPackageManager();
+        try {
+            for (int i = 0; i < packages.length(); i++) {
+                String pkg = packages.getString(i);
+                try {
+                    Drawable d = pm.getApplicationIcon(pkg);
+                    icons.put(pkg, toDataUrl(d));
+                    labels.put(pkg, pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString());
+                } catch (PackageManager.NameNotFoundException e) {
+                    // App no instalada: la interfaz usa su ícono de respaldo
+                }
+            }
+        } catch (Exception e) {
+            call.reject("No pude leer los íconos: " + e.getMessage());
+            return;
+        }
+        JSObject ret = new JSObject();
+        ret.put("icons", icons);
+        ret.put("labels", labels);
+        call.resolve(ret);
+    }
+
+    private String toDataUrl(Drawable d) {
+        int size = 144;
+        Bitmap b = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(b);
+        d.setBounds(0, 0, size, size);
+        d.draw(c);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        b.compress(Bitmap.CompressFormat.PNG, 100, out);
+        return "data:image/png;base64," + Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP);
+    }
+}
+`);
+
+console.log('Android parcheado: HOME + horizontal + permisos + MainActivity + AppIcons');

@@ -51,12 +51,19 @@
 
   /* Derecha */
   .apps { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; width:100%; }
-  .app { background:var(--card); border-radius:20px; padding:16px 6px; display:flex; flex-direction:column; align-items:center; gap:6px; font-size:13px; font-weight:800; color:#d4d4d8; }
-  .app i { font-style:normal; font-size:34px; line-height:1; }
+  .app { background:var(--card); border-radius:20px; padding:14px 6px 12px; display:flex; flex-direction:column; align-items:center; gap:8px; font-size:13px; font-weight:800; color:#d4d4d8; }
+  .app .ico { width:52px; height:52px; display:flex; align-items:center; justify-content:center; }
+  .app img { width:52px; height:52px; border-radius:14px; object-fit:cover; transition:filter .3s; }
+  .app .fb { width:52px; height:52px; border-radius:16px; display:flex; align-items:center; justify-content:center; background:color-mix(in srgb, var(--c) 16%, #000); color:var(--c); }
+  .app .fb svg { width:28px; height:28px; }
+  body.mono .app img { filter:grayscale(1) brightness(1.15) contrast(.95); }
+  body.mono .app .fb { background:#1c1c20; color:#e4e4e7; }
+  svg.i { fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
 
   footer { display:flex; align-items:center; justify-content:space-around; background:var(--card); border-radius:24px; padding:0 10px; }
   footer button { display:flex; flex-direction:column; align-items:center; gap:2px; font-size:11px; font-weight:700; color:#a1a1aa; padding:6px 14px; }
-  footer button i { font-style:normal; font-size:24px; }
+  footer button svg { width:24px; height:24px; color:#d4d4d8; }
+  footer button:active svg { color:#fff; }
 
   /* Modal */
   #modal { position:fixed; inset:0; background:rgba(0,0,0,.96); display:none; flex-direction:column; padding:22px 40px; z-index:30; overflow:auto; }
@@ -132,13 +139,13 @@
 </main>
 
 <footer>
-  <button onclick="saveParking()"><i>📍</i><span id="parkLbl">Parking</span></button>
-  <button onclick="openMaint()"><i>🔧</i>Service</button>
-  <button onclick="openFuel()"><i>⛽</i>Nafta</button>
-  <button onclick="openObd()"><i>📡</i>OBD</button>
-  <button onclick="openSettings()"><i>⚙️</i>Ajustes</button>
-  <button onclick="openAndroid('settings')"><i>🛠</i>Android</button>
-  <button onclick="toggleNight()"><i>🌙</i>Noche</button>
+  <button onclick="saveParking()" data-ic="pin"><span id="parkLbl">Parking</span></button>
+  <button onclick="openMaint()" data-ic="wrench">Service</button>
+  <button onclick="openFuel()" data-ic="fuel">Nafta</button>
+  <button onclick="openObd()" data-ic="obd">OBD</button>
+  <button onclick="openSettings()" data-ic="sliders">Ajustes</button>
+  <button onclick="openAndroid('settings')" data-ic="grid">Sistema</button>
+  <button onclick="toggleNight()" data-ic="moon">Noche</button>
 </footer>
 
 <div id="modal"><button class="x" onclick="closeModal()">✕</button><div id="modalBody"></div></div>
@@ -158,15 +165,35 @@ const DEF = {
   parking: null,
   shift: null,       // {start, km0, money, trips}
   obdAddr: '',
+  mono: false,       // íconos de apps en blanco y negro
   apps: [
-    { n:'Maps',   i:'🗺️', pkg:'com.google.android.apps.maps' },
-    { n:'Waze',   i:'🧭', pkg:'com.waze' },
-    { n:'Uber',   i:'🚗', pkg:'com.ubercab.driver' },
-    { n:'DiDi',   i:'🛵', pkg:'com.didiglobal.driver' },
-    { n:'Spotify',i:'🎵', pkg:'com.spotify.music' },
-    { n:'YT Music',i:'▶️', pkg:'com.google.android.apps.youtube.music' }
+    { n:'Maps',    ic:'map',   c:'#34d399', pkg:'com.google.android.apps.maps' },
+    { n:'Waze',    ic:'nav',   c:'#38bdf8', pkg:'com.waze' },
+    { n:'Uber',    ic:'car',   c:'#e4e4e7', pkg:'com.ubercab.driver' },
+    { n:'DiDi',    ic:'bag',   c:'#fb923c', pkg:'com.didiglobal.driver' },
+    { n:'Spotify', ic:'music', c:'#4ade80', pkg:'com.spotify.music' },
+    { n:'YT Music',ic:'play',  c:'#f87171', pkg:'com.google.android.apps.youtube.music' }
   ]
 };
+
+/* ================= Íconos de línea propios ================= */
+const ICONS = {
+  map:'<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/>',
+  nav:'<path d="M12 3 5 20l7-4 7 4z"/>',
+  car:'<path d="M3 16v-3.5L5 8a2 2 0 0 1 1.8-1h10.4A2 2 0 0 1 19 8l2 4.5V16a1 1 0 0 1-1 1h-1"/><path d="M5 17H4a1 1 0 0 1-1-1M9 17h6M3 12.5h18"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>',
+  bag:'<path d="M4.5 8h15l-1.3 11.2a2 2 0 0 1-2 1.8H7.8a2 2 0 0 1-2-1.8z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/>',
+  music:'<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
+  play:'<circle cx="12" cy="12" r="9"/><path d="m10 8.5 5.5 3.5-5.5 3.5z"/>',
+  app:'<rect x="4" y="4" width="16" height="16" rx="4"/>',
+  pin:'<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+  wrench:'<path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L3.5 17.3a1.8 1.8 0 0 0 2.5 2.5l5.8-5.8a4 4 0 0 0 5.2-5.4l-2.6 2.6-2.3-.5-.5-2.3z"/>',
+  fuel:'<path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M3 21h12M4 10h10"/><path d="M14 8h2a2 2 0 0 1 2 2v6a1.5 1.5 0 0 0 3 0V9l-3-3"/>',
+  obd:'<path d="M3 12h4l3-7 4 14 3-7h4"/>',
+  sliders:'<path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>',
+  grid:'<rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/>',
+  moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>'
+};
+const svg = k => `<svg class="i" viewBox="0 0 24 24">${ICONS[k]||ICONS.app}</svg>`;
 let S;
 try { S = Object.assign({}, DEF, JSON.parse(localStorage.getItem('passo')||'{}')); } catch(e){ S = {...DEF}; }
 const save = () => { try{ localStorage.setItem('passo', JSON.stringify(S)); }catch(e){} };
@@ -182,10 +209,36 @@ function openApp(pkg){
   else toast('Solo funciona dentro de la app (APK)');
 }
 function openAndroid(){ const AL=window.Capacitor?.Plugins?.AppLauncher; if(AL) AL.openUrl({url:'com.android.settings'}); else toast('Solo en la APK'); }
-function renderApps(){
-  $('apps').innerHTML = S.apps.map((a,i)=>`<button class="app" onclick="openApp('${a.pkg}')"><i>${a.i}</i>${a.n}</button>`).join('');
+// Migrar accesos guardados por versiones viejas (que usaban emoji)
+S.apps = S.apps.map((a,i)=>{ const d=DEF.apps.find(x=>x.pkg===a.pkg)||DEF.apps[i]||{}; return { n:a.n, pkg:a.pkg, ic:a.ic||d.ic||'app', c:a.c||d.c||'#d4d4d8' }; });
+
+// Íconos reales de las apps instaladas (los entrega Android vía el plugin AppIcons)
+let realIcons = {};
+try { realIcons = JSON.parse(localStorage.getItem('passoIcons')||'{}'); } catch(e){}
+function iconPlugin(){
+  const C = window.Capacitor;
+  if (!C || !C.isNativePlatform || !C.isNativePlatform()) return null;
+  return (C.Plugins && C.Plugins.AppIcons) || (C.registerPlugin ? C.registerPlugin('AppIcons') : null);
 }
-renderApps();
+async function loadIcons(){
+  const P = iconPlugin(); if (!P) return;
+  try {
+    const r = await P.get({ packages: S.apps.map(a=>a.pkg) });
+    realIcons = r.icons || {};
+    try { localStorage.setItem('passoIcons', JSON.stringify(realIcons)); } catch(e){}
+    renderApps();
+  } catch(e) {}
+}
+function renderApps(){
+  document.body.classList.toggle('mono', !!S.mono);
+  $('apps').innerHTML = S.apps.map(a=>{
+    const real = realIcons[a.pkg];
+    const ico = real ? `<img src="${real}" alt="">` : `<span class="fb" style="--c:${a.c}">${svg(a.ic)}</span>`;
+    return `<button class="app" onclick="openApp('${a.pkg}')"><span class="ico">${ico}</span>${a.n}</button>`;
+  }).join('');
+}
+document.querySelectorAll('footer button[data-ic]').forEach(b=>b.insertAdjacentHTML('afterbegin', svg(b.dataset.ic)));
+renderApps(); loadIcons();
 
 /* ================= Toast / alertas ================= */
 let tt; function toast(m){ $('alerts').textContent=m; clearTimeout(tt); tt=setTimeout(refreshAlerts,3500); }
@@ -282,8 +335,8 @@ function refreshAlerts(hot,lowV){
   const a=[];
   if(hot) a.push('⚠ Motor recalentado: parate');
   if(lowV) a.push('⚠ Batería baja (<12 V)');
-  S.maint.forEach(m=>{ const left=m.everyKm-(S.odo-m.lastKm); if(left<=0) a.push('🔧 '+m.name+' vencido'); else if(left<500) a.push('🔧 '+m.name+' en '+Math.round(left)+' km'); });
-  S.dates.forEach(d=>{ if(!d.due) return; const days=Math.ceil((new Date(d.due)-new Date())/864e5); if(days<0) a.push('📅 '+d.name+' VENCIDO'); else if(days<=30) a.push('📅 '+d.name+' en '+days+' días'); });
+  S.maint.forEach(m=>{ const left=m.everyKm-(S.odo-m.lastKm); if(left<=0) a.push(m.name+' vencido'); else if(left<500) a.push(m.name+' en '+Math.round(left)+' km'); });
+  S.dates.forEach(d=>{ if(!d.due) return; const days=Math.ceil((new Date(d.due)-new Date())/864e5); if(days<0) a.push(d.name+' VENCIDO'); else if(days<=30) a.push(d.name+' en '+days+' días'); });
   $('alerts').textContent = a.slice(0,2).join('   ·   ');
 }
 
@@ -362,16 +415,19 @@ function openObd(){
 }
 function openSettings(){
   openModal(`<h2>Ajustes</h2>`+
-    S.apps.map((a,i)=>`<div class="item"><span>${a.i} ${a.n}<small>${a.pkg}</small></span><button class="btn" onclick="editApp(${i})">Cambiar paquete</button></div>`).join('')+
+    `<div class="item"><span>Íconos de apps<small>${S.mono?'Monocromo: integrados al tema oscuro':'Color: los originales de cada app'}</small></span><button class="btn ${S.mono?'':'go'}" onclick="S.mono=!S.mono;save();renderApps();openSettings()">${S.mono?'Pasar a color':'Pasar a monocromo'}</button></div>`+
+    S.apps.map((a,i)=>`<div class="item"><span>${a.n}<small>${a.pkg}${realIcons[a.pkg]?'':' · no instalada o sin detectar'}</small></span><button class="btn" onclick="editApp(${i})">Cambiar paquete</button></div>`).join('')+
     `<div class="item"><span>Adaptador OBD guardado<small>${S.obdAddr||'ninguno'}</small></span>${S.obdAddr?`<button class="btn go" onclick="connectObd(S.obdAddr)">Reconectar</button>`:''}</div>`);
 }
-function editApp(i){ const p=prompt('Nombre de paquete Android', S.apps[i].pkg); if(p){ S.apps[i].pkg=p.trim(); save(); renderApps(); openSettings(); } }
+function editApp(i){ const p=prompt('Nombre de paquete Android', S.apps[i].pkg); if(p){ S.apps[i].pkg=p.trim(); save(); renderApps(); loadIcons().then(openSettings); } }
 
 /* ================= Noche ================= */
 let night=false; function toggleNight(){ night=!night; $('night').style.opacity=night?.65:0; }
 
 /* ================= Auto-reconexión OBD al arrancar ================= */
-document.addEventListener('deviceready',()=>{ BT = window.bluetoothSerial; if(S.obdAddr && BT) connectObd(S.obdAddr); });
+document.addEventListener('deviceready',()=>{ BT = window.bluetoothSerial; loadIcons(); if(S.obdAddr && BT) connectObd(S.obdAddr); });
+// Al volver al launcher (ej. después de instalar una app) refrescar íconos
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) loadIcons(); });
 renderObd(); refreshAlerts();
 </script>
 </body>

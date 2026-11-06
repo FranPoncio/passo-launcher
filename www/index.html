@@ -57,6 +57,13 @@
       radial-gradient(44% 50% at 86% 80%, color-mix(in srgb, var(--acc2) 40%, transparent), transparent 70%),
       radial-gradient(34% 34% at 60% 6%, color-mix(in srgb, var(--acc2) 20%, transparent), transparent 70%); }
   body.anim #aura { animation:drift 38s ease-in-out infinite alternate; }
+  /* Tema Ámbar clásico: todo en tonos naranja, como la luz de los tableros viejos */
+  body.amber > header, body.amber > main, body.amber > footer, body.amber #modal { filter:sepia(1) saturate(3.4) hue-rotate(-12deg) brightness(.93); }
+  /* Marcha calculada */
+  .gear { position:absolute; top:4%; right:-2%; display:none; flex-direction:column; align-items:center; justify-content:center; width:8.6vh; height:8.6vh; border-radius:2.2vh; background:color-mix(in srgb, var(--acc) 16%, transparent); box-shadow:inset 0 0 0 2px color-mix(in srgb, var(--acc) 55%, transparent); }
+  .gear.on { display:flex; }
+  .gear b { font-size:5vh; font-weight:900; line-height:1; color:#fff; }
+  .gear small { font-size:1.5vh; font-weight:800; letter-spacing:.12em; color:var(--mut2); text-transform:uppercase; margin-top:.2vh; }
   @keyframes drift { from { transform:translate3d(-3%,-2%,0) rotate(0deg); } to { transform:translate3d(3%,3%,0) rotate(8deg); } }
   .wx { display:none; align-items:center; gap:.9vh; height:6.4vh; padding:0 1.2vh; font-size:2.6vh; font-weight:800; color:#e4e4e7; }
   .wx.on { display:flex; }
@@ -156,7 +163,7 @@
   .dk { display:flex; align-items:center; gap:1.2vh; height:100%; padding:0 2.8vh; border-radius:99px; font-size:2.2vh; font-weight:800; color:var(--c); white-space:nowrap; background:color-mix(in srgb, var(--c) 12%, transparent); }
   .dk svg { width:3.2vh; height:3.2vh; }
   .dk img { width:4.4vh; height:4.4vh; border-radius:1.1vh; }
-  .dk.main { background:linear-gradient(100deg, var(--acc), var(--acc2)); color:#05060a; box-shadow:0 1vh 3vh color-mix(in srgb, var(--acc) 40%, transparent); }
+  .dk.main { background:linear-gradient(100deg, var(--acc), var(--acc2)); color:var(--mainTxt,#05060a); box-shadow:0 1vh 3vh color-mix(in srgb, var(--acc) 40%, transparent); }
   .allapps { height:100%; aspect-ratio:1; border-radius:50%; background:#fff; color:#000; display:flex; align-items:center; justify-content:center; }
   .allapps svg { width:3.4vh; height:3.4vh; }
 
@@ -232,6 +239,7 @@
         <div id="speed">0</div>
         <div class="unit">km/h</div>
       </div>
+      <div class="gear" id="gear"><b id="gearV">D</b><small>marcha</small></div>
     </div>
     <div id="obdLine" class="mono">
       <span><b id="rpm">--</b><small>rpm</small></span><span><b id="temp">--</b><small>agua</small></span><span><b id="volt">--</b><small>bat.</small></span><span id="consBox"><b id="cons">--</b><small>L/100</small></span>
@@ -518,6 +526,8 @@ const THEMES = {
   sunset: { n:'Atardecer', acc:'#fb923c', acc2:'#f43f5e', bg:'#0c0506' },
   retro:  { n:'Retro',   acc:'#facc15', acc2:'#a855f7', bg:'#0a0612' },
   ocean:  { n:'Océano',  acc:'#38bdf8', acc2:'#6366f1', bg:'#030612' },
+  ambar:  { n:'Ámbar clásico', acc:'#ff8a1f', acc2:'#ffb547', bg:'#060200', aura:.55, amber:true },
+  medianoche: { n:'Medianoche', acc:'#4f46e5', acc2:'#1e40af', bg:'#000002', aura:.45, mainTxt:'#fff' },
   oled:   { n:'OLED negro', acc:'#10b981', acc2:'#10b981', bg:'#000000', flat:true }
 };
 const BGS = [ ['#000000','Negro OLED'], ['#070b14','Azul noche'], ['#0f1318','Grafito'], ['#140709','Bordó'], ['#05120e','Esmeralda'] ];
@@ -527,7 +537,7 @@ function applyLook(){
   $('greet').style.display = S.greet ? '' : 'none';
   const t = THEMES[S.theme] || THEMES.aurora, R = document.documentElement.style;
   R.setProperty('--bg', t.bg); R.setProperty('--acc', t.acc); R.setProperty('--acc2', t.acc2);
-  R.setProperty('--aura', t.flat ? 0 : 1);
+  R.setProperty('--aura', t.flat ? 0 : (t.aura ?? 1)); document.body.classList.toggle('amber', !!t.amber); R.setProperty('--mainTxt', t.mainTxt||'#05060a');
   S.acc = t.acc; document.body.classList.toggle('anim', !!S.anim && !t.flat);
   document.querySelector('main').classList.toggle('lhd', S.side==='lhd');
 }
@@ -613,7 +623,7 @@ if (navigator.geolocation) {
 setInterval(save,15000);
 
 /* ================= OBD2 (ELM327 Bluetooth clásico) ================= */
-const obd = { rpm:null, temp:null, volt:null, maf:null, iat:null, mil:null, dtcCount:null, proto:'', ok:false, sim:false };
+const obd = { speed:null, rpm:null, temp:null, volt:null, maf:null, iat:null, mil:null, dtcCount:null, proto:'', ok:false, sim:false };
 let BT = window.bluetoothSerial;
 let buf='', waiter=null, pollTimer=null, pollN=0;
 let cmdQueue = Promise.resolve();
@@ -643,6 +653,7 @@ async function obdPoll(){
   let r;
   r = parseHex(await cmd('010C'),'0C'); if(r&&r.length>=2) obd.rpm = ((r[0]*256)+r[1])/4;
   r = parseHex(await cmd('0105'),'05'); if(r&&r.length>=1) obd.temp = r[0]-40;
+  r = parseHex(await cmd('010D'),'0D'); obd.speed = (r&&r.length>=1) ? r[0] : null;
   r = parseHex(await cmd('0142'),'42'); if(r&&r.length>=2) obd.volt = ((r[0]*256)+r[1])/1000;
   r = parseHex(await cmd('0110'),'10'); obd.maf = (r&&r.length>=2) ? ((r[0]*256)+r[1])/100 : null;
   if (pollN % 5 === 0) { r = parseHex(await cmd('010F'),'0F'); obd.iat = (r&&r.length>=1) ? r[0]-40 : null; }
@@ -732,17 +743,55 @@ function connectObd(addr){
     toast('OBD conectado'); closeModal();
   }, ()=>{ toast('No pude conectar al OBD','err'); obd.ok=false; renderObd(); });
 }
+/* ---------- Marcha calculada: RPM ÷ velocidad. Cada marcha tiene una relación fija.
+   Arranca con valores típicos de una caja de 4 marchas y los ajusta solo mientras manejás. ---------- */
+const GEAR_PRIOR = [110, 62, 40, 28]; // rpm por km/h aprox. en 1ª..4ª (Passo 1.3 automático)
+let gearPrevV = null;
+function gearRatios(){ return (Array.isArray(S.gearPeaks) && S.gearPeaks.length===4) ? S.gearPeaks : GEAR_PRIOR; }
+function learnGear(ratio){
+  if(!Array.isArray(S.gearBins)) S.gearBins = new Array(130).fill(0);
+  const i = Math.round((ratio-10)/2); if(i<0 || i>=130) return;
+  S.gearBins[i]++; S.gearN = (S.gearN||0)+1;
+  if(S.gearN % 150 === 0) computeGearPeaks();
+}
+function computeGearPeaks(){
+  const b=S.gearBins, sm=b.map((v,i)=>(b[i-1]||0)+2*v+(b[i+1]||0)), peaks=[];
+  for(let i=1;i<sm.length-1;i++) if(sm[i]>sm[i-1] && sm[i]>=sm[i+1] && sm[i]>=12) peaks.push([i*2+10, sm[i]]);
+  peaks.sort((x,y)=>y[1]-x[1]);
+  const sel=[]; for(const [r] of peaks){ if(sel.every(x=>Math.abs(x-r)/x > .2)) sel.push(r); if(sel.length===4) break; }
+  if(sel.length===4) { S.gearPeaks = sel.sort((x,y)=>y-x); save(); }
+}
+function calcGear(){
+  if(!obd.ok || obd.rpm==null) return null;
+  const v = obd.speed!=null ? obd.speed : speedKmh;
+  if(v < 4) return '–';
+  const ratio = obd.rpm / v, R = obd.sim ? GEAR_PRIOR : gearRatios();
+  if(!obd.sim && v>12 && obd.rpm>900 && gearPrevV!=null && Math.abs(v-gearPrevV)<1.2) learnGear(ratio);
+  gearPrevV = v;
+  if(ratio > R[0]*1.25) return '1';
+  let best=null, err=1;
+  R.forEach((r,i)=>{ const e=Math.abs(ratio-r)/r; if(e<err){ err=e; best=i+1; } });
+  return err < .16 ? String(best) : 'D';
+}
+function renderGear(){
+  const g = calcGear(), el=$('gear');
+  el.classList.toggle('on', g!=null);
+  if(g!=null) $('gearV').textContent = g;
+}
+
 function startSim(){
   obd.sim=true; clearInterval(pollTimer);
   let t=0; pollTimer=setInterval(()=>{ t+=0.1;
-    obd.rpm=1200+Math.abs(Math.sin(t))*2200; obd.temp=Math.min(91,60+t*2); obd.volt=14.1-Math.random()*.1; obd.maf=3+Math.abs(Math.sin(t))*8; obd.ok=true;
-    if(!gpsLast){ speedKmh=Math.abs(Math.sin(t))*80; showSpeed(); }
+    const v=Math.abs(Math.sin(t/2))*85, g = v<18?0: v<35?1: v<55?2: 3;
+    obd.speed=v; obd.rpm = v<4 ? 750 : Math.max(800, v*GEAR_PRIOR[g]*(0.97+Math.random()*.06));
+    obd.temp=Math.min(91,60+t*2); obd.volt=14.1-Math.random()*.1; obd.maf=3+obd.rpm/600; obd.ok=true;
+    if(!gpsLast){ speedKmh=v; showSpeed(); }
     renderObd();
   },400); closeModal();
 }
 function renderObd(){
   const rpm=obd.rpm, t=obd.temp, v=obd.volt;
-  $('obdLine').classList.toggle('on', !!obd.ok);
+  $('obdLine').classList.toggle('on', !!obd.ok); renderGear();
   $('rpm').textContent = rpm!=null ? Math.round(rpm) : '--';
   $('temp').textContent = t!=null ? Math.round(t)+'°' : '--';
   $('volt').textContent = v!=null ? v.toFixed(1)+'V' : '--';

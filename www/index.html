@@ -5,91 +5,143 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Passo Launcher</title>
 <style>
-  :root { --bg:#000; --card:#0d0d10; --txt:#fff; --mut:#71717a; --ok:#10b981; --cold:#38bdf8; --bad:#ef4444; --amb:#fbbf24; }
-  * { box-sizing:border-box; -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent; margin:0; padding:0; }
-  html,body { height:100%; background:var(--bg); color:var(--txt); font-family:system-ui,-apple-system,Roboto,sans-serif; overflow:hidden; font-variant-numeric:tabular-nums; }
-  body { display:grid; grid-template-rows:56px 1fr 72px; padding:8px 14px; gap:6px; transition:background .4s; }
-  button { font:inherit; color:inherit; background:none; border:none; cursor:pointer; }
-  button:active { transform:scale(.94); }
+  /* Fuentes locales: el launcher funciona sin internet */
+  @font-face { font-family:'Inter'; font-weight:400; src:url(fonts/inter-latin-400-normal.woff2) format('woff2'); }
+  @font-face { font-family:'Inter'; font-weight:600; src:url(fonts/inter-latin-600-normal.woff2) format('woff2'); }
+  @font-face { font-family:'Inter'; font-weight:700; src:url(fonts/inter-latin-700-normal.woff2) format('woff2'); }
+  @font-face { font-family:'Inter'; font-weight:800; src:url(fonts/inter-latin-800-normal.woff2) format('woff2'); }
+  @font-face { font-family:'Inter'; font-weight:900; src:url(fonts/inter-latin-900-normal.woff2) format('woff2'); }
+  @font-face { font-family:'JB'; font-weight:700; src:url(fonts/jetbrains-mono-latin-700-normal.woff2) format('woff2'); }
+  @font-face { font-family:'JB'; font-weight:800; src:url(fonts/jetbrains-mono-latin-800-normal.woff2) format('woff2'); }
 
+  :root {
+    --bg:#000; --soft:rgba(255,255,255,.06); --soft2:rgba(255,255,255,.1);
+    --txt:#fff; --mut:#71717a; --mut2:#a1a1aa;
+    --ok:#10b981; --ok2:#34d399; --cold:#38bdf8; --bad:#ef4444; --amb:#fbbf24; --acc:#10b981;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; border:0; outline:0; -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; background:var(--bg); color:var(--txt); font-family:'Inter',system-ui,sans-serif; overflow:hidden; transition:background .45s; }
+  .mono { font-family:'JB',ui-monospace,monospace; font-variant-numeric:tabular-nums; }
+  body { display:grid; grid-template-rows:9vh 1fr 12vh; padding:1.6vh 2.4vh 1.8vh; gap:1vh; }
+  button { font:inherit; color:inherit; background:none; cursor:pointer; }
+  .tap { transition:transform .15s cubic-bezier(.16,1,.3,1), opacity .2s; }
+  .tap:active { transform:scale(.9); }
+  .pill { background:var(--soft); border-radius:99px; }
+  svg.i { fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
+
+  /* ---------- Barra superior ---------- */
   header { display:flex; align-items:center; justify-content:space-between; }
-  .greet { font-weight:800; letter-spacing:.2em; font-size:13px; color:#e4e4e7; text-transform:uppercase; margin-right:12px; }
-  .brand { font-weight:800; letter-spacing:.2em; font-size:13px; color:#a1a1aa; text-transform:uppercase; }
-  #toast { position:fixed; top:14px; left:50%; transform:translate(-50%,-8px); background:rgba(39,39,42,.92); padding:10px 20px; border-radius:99px; font-size:13px; font-weight:800; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; z-index:60; display:flex; align-items:center; gap:10px; white-space:nowrap; }
-  #toast.on { opacity:1; transform:translate(-50%,0); }
-  #toast i { width:9px; height:9px; border-radius:50%; background:var(--ok); display:inline-block; }
-  #toast.warn i { background:var(--amb); } #toast.err i { background:var(--bad); }
-  main.lhd { grid-template-columns:1fr 1.2fr 1.1fr; }
-  main.lhd > section:nth-child(1) { order:3; } main.lhd > section:nth-child(2) { order:2; } main.lhd > section:nth-child(3) { order:1; }
-  .swatches { display:flex; gap:10px; }
-  .sw { width:46px; height:46px; border-radius:14px; background:var(--s); box-shadow:inset 0 0 0 1px #3f3f46; }
-  .sw.on { box-shadow:inset 0 0 0 3px var(--ok); }
-  .dtc { display:flex; gap:14px; align-items:center; padding:14px 16px; background:var(--card); border-radius:16px; margin-bottom:8px; }
-  .dtc b { font-size:20px; font-weight:900; color:var(--amb); min-width:78px; }
-  .dtc span { font-weight:600; color:#d4d4d8; }
-  .brand b { color:var(--bad); }
-  .pill { font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; padding:5px 12px; border-radius:99px; background:#052e22; color:var(--ok); margin-left:12px; }
-  .pill.cold { background:#082f49; color:var(--cold); }
-  .pill.bad  { background:var(--bad); color:#fff; }
-  .pill.sim  { background:#3b2f05; color:var(--amb); }
-  #clock { font-size:34px; font-weight:900; }
+  .hl, .hr { display:flex; align-items:center; gap:2vh; }
+  .greet { font-weight:800; letter-spacing:.22em; font-size:1.9vh; text-transform:uppercase; }
+  .brand { font-weight:800; letter-spacing:.16em; font-size:1.9vh; color:var(--bad); }
+  #badge { display:flex; align-items:center; gap:1vh; font-size:1.6vh; font-weight:800; letter-spacing:.08em; text-transform:uppercase; padding:.9vh 2vh; border-radius:99px; background:rgba(16,185,129,.15); color:var(--ok2); }
+  #badge i { width:1.1vh; height:1.1vh; border-radius:50%; background:currentColor; box-shadow:0 0 1.2vh currentColor; }
+  #badge.cold { background:rgba(56,189,248,.14); color:var(--cold); }
+  #badge.bad { background:rgba(239,68,68,.2); color:#fca5a5; }
+  #badge.sim { background:rgba(251,191,36,.13); color:var(--amb); }
+  .hbtn { display:flex; align-items:center; gap:1vh; padding:1vh 2.2vh; font-size:1.7vh; font-weight:700; color:#d4d4d8; }
+  .hbtn svg { width:2.2vh; height:2.2vh; }
+  .hicon { color:var(--mut2); padding:1vh; } .hicon svg { width:2.6vh; height:2.6vh; }
+  #clock { font-size:4.4vh; font-weight:800; letter-spacing:.02em; }
 
-  main { display:grid; grid-template-columns:1.1fr 1.2fr 1fr; gap:14px; min-height:0; }
-  .col { display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:0; }
+  /* ---------- Centro de la pantalla ---------- */
+  main { display:grid; grid-template-columns:24% 1fr 23%; gap:2vh; min-height:0; }
+  main.lhd > :nth-child(1) { order:3; } main.lhd > :nth-child(3) { order:1; }
+  .col { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:0; }
 
-  /* Izquierda */
-  .gauge { position:relative; width:min(100%,300px); aspect-ratio:1/.85; }
-  .gauge svg { width:100%; height:100%; }
-  .gauge .c { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding-top:12%; }
-  #speed { font-size:clamp(56px,9vw,96px); font-weight:900; line-height:1; letter-spacing:-.04em; }
-  .unit { font-size:11px; letter-spacing:.2em; color:var(--mut); font-weight:700; text-transform:uppercase; margin-top:4px; }
-  #rpm { font-size:14px; font-weight:800; color:var(--ok); margin-top:6px; }
-  .tiles { display:flex; gap:22px; margin-top:6px; }
+  /* Izquierda: velocímetro */
+  .gauge { position:relative; width:100%; max-width:38vh; aspect-ratio:1/.82; }
+  .gauge svg { width:100%; height:100%; overflow:visible; }
+  .gauge .c { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding-top:9%; }
+  #speed { font-size:13vh; font-weight:900; line-height:.9; letter-spacing:-.05em; }
+  .unit { font-size:1.45vh; letter-spacing:.24em; color:var(--mut); font-weight:800; text-transform:uppercase; margin-top:1vh; }
+  #rpm { font-size:1.75vh; font-weight:800; color:var(--ok2); margin-top:.8vh; letter-spacing:.06em; }
+  .tiles { display:flex; gap:3.4vh; margin-top:2.2vh; }
   .tile { text-align:center; }
-  .tile small { display:block; font-size:10px; letter-spacing:.15em; color:var(--mut); font-weight:700; text-transform:uppercase; }
-  .tile span { font-size:26px; font-weight:900; white-space:nowrap; }
+  .tile small { display:block; font-size:1.3vh; letter-spacing:.18em; color:var(--mut); font-weight:800; text-transform:uppercase; margin-bottom:.6vh; }
+  .tile span { font-size:3.6vh; font-weight:800; white-space:nowrap; }
+  .tile span small { display:inline; font-size:1.7vh; color:var(--mut); letter-spacing:0; }
+  .lnk { margin-top:2.4vh; display:flex; align-items:center; gap:1vh; padding:1vh 2.2vh; font-size:1.55vh; font-weight:700; color:#d4d4d8; }
+  .lnk svg { width:2vh; height:2vh; color:var(--ok2); }
 
-  /* Centro */
-  .panel { width:100%; background:var(--card); border-radius:22px; padding:16px 18px; }
-  .panel h3 { font-size:11px; letter-spacing:.2em; color:var(--mut); text-transform:uppercase; margin-bottom:10px; }
-  .shift-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; text-align:center; margin-bottom:12px; }
-  .shift-grid div b { display:block; font-size:24px; font-weight:900; }
-  .shift-grid div small { font-size:10px; color:var(--mut); letter-spacing:.1em; text-transform:uppercase; }
-  .row { display:flex; gap:10px; }
-  .btn { flex:1; padding:14px 8px; border-radius:16px; background:#18181b; font-weight:800; font-size:13px; text-transform:uppercase; letter-spacing:.06em; }
-  .btn.go { background:#064e3b; color:#6ee7b7; }
-  .btn.stop { background:#7f1d1d; color:#fecaca; }
-  .btn.amb { background:#3b2f05; color:var(--amb); }
-  .alerts { width:100%; margin-top:10px; font-size:13px; font-weight:700; color:var(--amb); text-align:center; min-height:20px; }
+  /* Centro: el auto */
+  .stage { position:relative; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .stage::before { content:''; position:absolute; inset:6% 4% 14%; background:radial-gradient(ellipse 60% 52% at 50% 58%, color-mix(in srgb, var(--acc) 22%, transparent), transparent 70%); pointer-events:none; transition:background .6s; }
+  .model { position:relative; font-size:1.45vh; letter-spacing:.34em; font-weight:800; color:var(--mut); text-transform:uppercase; }
+  .model b { color:#e4e4e7; }
+  .car { position:relative; width:100%; max-width:62vh; margin-top:1.2vh; }
+  .car svg, .car img { display:block; width:100%; height:auto; }
+  .car img { aspect-ratio:480/232; object-fit:cover; border-radius:3vh; -webkit-mask-image:radial-gradient(ellipse 70% 70% at 50% 50%, #000 55%, transparent 100%); mask-image:radial-gradient(ellipse 70% 70% at 50% 50%, #000 55%, transparent 100%); }
+  .car .lamp { transition:opacity .5s; }
+  #alerts { position:relative; min-height:3.6vh; margin-top:.4vh; display:flex; gap:1vh; flex-wrap:wrap; justify-content:center; }
+  #alerts span { font-size:1.55vh; font-weight:800; padding:.8vh 1.8vh; border-radius:99px; background:rgba(251,191,36,.12); color:var(--amb); }
+  #alerts span.r { background:rgba(239,68,68,.18); color:#fca5a5; }
+  .stats { position:relative; display:grid; grid-template-columns:repeat(4,1fr); gap:1.2vh; width:100%; max-width:80vh; margin-top:1.4vh; }
+  .stat { background:var(--soft); border-radius:2.2vh; padding:1.3vh 1.4vh; text-align:center; }
+  .stat small { display:block; font-size:1.2vh; letter-spacing:.18em; color:var(--mut); font-weight:800; text-transform:uppercase; }
+  .stat b { display:block; font-size:2.3vh; font-weight:800; margin-top:.5vh; white-space:nowrap; }
+  .stat b.warn { color:var(--amb); } .stat b.bad { color:#f87171; } .stat b.good { color:var(--ok2); }
 
-  /* Derecha */
-  .apps { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; width:100%; }
-  .app { background:var(--card); border-radius:20px; padding:14px 6px 12px; display:flex; flex-direction:column; align-items:center; gap:8px; font-size:13px; font-weight:800; color:#d4d4d8; }
-  .app .ico { width:52px; height:52px; display:flex; align-items:center; justify-content:center; }
-  .app img { width:52px; height:52px; border-radius:14px; object-fit:cover; transition:filter .3s; }
-  .app .fb { width:52px; height:52px; border-radius:16px; display:flex; align-items:center; justify-content:center; background:color-mix(in srgb, var(--c) 16%, #000); color:var(--c); }
-  .app .fb svg { width:28px; height:28px; }
-  body.mono .app img { filter:grayscale(1) brightness(1.15) contrast(.95); }
-  body.mono .app .fb { background:#1c1c20; color:#e4e4e7; }
-  svg.i { fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  /* Derecha: apps */
+  .apps { display:grid; grid-template-columns:repeat(2,1fr); gap:3.2vh 1vh; width:100%; }
+  .app { display:flex; flex-direction:column; align-items:center; gap:1.1vh; font-size:1.65vh; font-weight:700; color:#e4e4e7; }
+  .app .ico { width:7vh; height:7vh; display:flex; align-items:center; justify-content:center; }
+  .app img { width:7vh; height:7vh; border-radius:1.9vh; object-fit:cover; transition:filter .3s; }
+  .fb { width:7vh; height:7vh; border-radius:2.2vh; display:flex; align-items:center; justify-content:center; background:color-mix(in srgb, var(--c) 15%, transparent); color:var(--c); }
+  .fb svg { width:3.6vh; height:3.6vh; }
+  body.mono-ic .app img, body.mono-ic .dr img { filter:grayscale(1) brightness(1.15); }
+  body.mono-ic .fb { background:var(--soft); color:#e4e4e7; }
+  .work { margin-top:4.4vh; width:100%; display:flex; align-items:center; justify-content:center; gap:1.2vh; padding:1.7vh; font-size:1.6vh; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--amb); }
+  .work svg { width:2.2vh; height:2.2vh; }
+  .work.on { background:rgba(251,191,36,.16); }
 
-  footer { display:flex; align-items:center; justify-content:space-around; background:var(--card); border-radius:24px; padding:0 10px; }
-  footer button { display:flex; flex-direction:column; align-items:center; gap:2px; font-size:11px; font-weight:700; color:#a1a1aa; padding:6px 14px; }
-  footer button svg { width:24px; height:24px; color:#d4d4d8; }
-  footer button:active svg { color:#fff; }
+  /* ---------- Dock inferior ---------- */
+  footer { display:flex; align-items:center; justify-content:space-between; gap:2vh; }
+  .side { display:flex; align-items:center; gap:1.2vh; padding:1.5vh 2.6vh; font-size:1.65vh; font-weight:800; color:#e4e4e7; }
+  .side svg { width:2.3vh; height:2.3vh; }
+  .dock { display:flex; align-items:center; gap:3.4vh; padding:1.1vh 1.4vh 1.1vh 3.4vh; border-radius:99px; background:var(--soft); }
+  .dk { display:flex; align-items:center; gap:.9vh; font-size:1.7vh; font-weight:800; color:var(--c); white-space:nowrap; }
+  .dk svg { width:2.2vh; height:2.2vh; }
+  .dk img { width:2.8vh; height:2.8vh; border-radius:.7vh; }
+  .allapps { width:6.6vh; height:6.6vh; border-radius:50%; background:#fff; color:#000; display:flex; align-items:center; justify-content:center; }
+  .allapps svg { width:2.8vh; height:2.8vh; }
 
-  /* Modal */
-  #modal { position:fixed; inset:0; background:rgba(0,0,0,.96); display:none; flex-direction:column; padding:22px 40px; z-index:30; overflow:auto; }
-  #modal.on { display:flex; }
-  #modal h2 { font-size:22px; font-weight:900; margin-bottom:14px; }
-  #modal .x { position:absolute; right:26px; top:16px; font-size:30px; color:#a1a1aa; }
-  .item { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:var(--card); border-radius:16px; margin-bottom:8px; font-weight:700; gap:10px; }
-  .item small { color:var(--mut); font-weight:600; display:block; margin-top:2px; }
-  .item .btn { flex:none; padding:10px 16px; }
-  input { background:#18181b; color:#fff; border:none; border-radius:12px; padding:12px 14px; font:inherit; width:170px; }
+  /* ---------- Paneles (modales) ---------- */
+  #modal { position:fixed; inset:0; background:rgba(0,0,0,.94); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); display:none; flex-direction:column; padding:4vh 6vh; z-index:30; overflow:auto; }
+  #modal.on { display:flex; animation:up .28s cubic-bezier(.16,1,.3,1); }
+  @keyframes up { from { opacity:0; transform:translateY(2vh); } to { opacity:1; transform:none; } }
+  #modal h2 { font-size:3.2vh; font-weight:900; margin-bottom:2.2vh; letter-spacing:-.01em; }
+  #modal h2 small { font-size:1.8vh; color:var(--mut); font-weight:700; margin-left:1vh; }
+  #modal .x { position:fixed; right:4vh; top:3vh; width:6vh; height:6vh; border-radius:50%; background:var(--soft2); display:flex; align-items:center; justify-content:center; }
+  #modal .x svg { width:2.6vh; height:2.6vh; }
+  .item { display:flex; align-items:center; justify-content:space-between; gap:1.4vh; padding:1.9vh 2.2vh; background:var(--soft); border-radius:2.4vh; margin-bottom:1.1vh; font-weight:700; font-size:1.9vh; }
+  .item small { color:var(--mut); font-weight:600; display:block; margin-top:.3vh; font-size:1.55vh; }
+  .item b { font-size:2.2vh; }
+  .btn { padding:1.5vh 2.6vh; border-radius:99px; background:var(--soft2); font-weight:800; font-size:1.6vh; text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; }
+  .btn.go { background:var(--ok); color:#022c22; } .btn.stop { background:#dc2626; color:#fff; } .btn.amb { background:rgba(251,191,36,.18); color:var(--amb); }
+  .row { display:flex; gap:1.2vh; }
+  .row > .btn { flex:1; }
+  input { background:var(--soft2); color:#fff; border-radius:1.6vh; padding:1.4vh 1.8vh; font:inherit; font-size:1.9vh; width:22vh; color-scheme:dark; }
+  .grid4 { display:grid; grid-template-columns:repeat(4,1fr); gap:1.2vh; }
+  .big { text-align:center; padding:2vh; background:var(--soft); border-radius:2.4vh; }
+  .big b { display:block; font-size:4vh; font-weight:900; }
+  .big small { font-size:1.3vh; letter-spacing:.16em; color:var(--mut); font-weight:800; text-transform:uppercase; }
+  .drawer { display:grid; grid-template-columns:repeat(6,1fr); gap:4vh 2vh; padding:2vh 0; }
+  .dr { display:flex; flex-direction:column; align-items:center; gap:1.2vh; font-size:1.65vh; font-weight:700; color:#e4e4e7; text-align:center; }
+  .dr img, .dr .fb { width:8vh; height:8vh; border-radius:2.2vh; }
+  .swatches { display:flex; gap:1.2vh; }
+  .sw { width:5.4vh; height:5.4vh; border-radius:1.6vh; background:var(--s); box-shadow:inset 0 0 0 2px #3f3f46; }
+  .sw.on { box-shadow:inset 0 0 0 4px var(--ok); }
+  .dtc { display:flex; gap:1.8vh; align-items:center; padding:1.8vh 2vh; background:var(--soft); border-radius:2vh; margin-bottom:1vh; }
+  .dtc b { font-size:2.4vh; font-weight:900; color:var(--amb); min-width:11vh; }
+  .dtc span { font-weight:600; color:#d4d4d8; font-size:1.8vh; }
 
+  #toast { position:fixed; top:2vh; left:50%; transform:translate(-50%,-1vh); background:rgba(39,39,42,.95); padding:1.4vh 2.8vh; border-radius:99px; font-size:1.8vh; font-weight:800; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; z-index:60; display:flex; align-items:center; gap:1.3vh; white-space:nowrap; }
+  #toast.on { opacity:1; transform:translate(-50%,0); }
+  #toast i { width:1.2vh; height:1.2vh; border-radius:50%; background:var(--ok); }
+  #toast.warn i { background:var(--amb); } #toast.err i { background:var(--bad); }
   #night { position:fixed; inset:0; background:#000; opacity:0; pointer-events:none; transition:opacity .4s; z-index:40; }
-  #danger { position:fixed; inset:0; pointer-events:none; z-index:20; display:none; background:radial-gradient(circle,transparent 55%,rgba(239,68,68,.5) 100%); animation:pulse 1.2s infinite; }
+  #danger { position:fixed; inset:0; pointer-events:none; z-index:20; display:none; background:radial-gradient(circle,transparent 55%,rgba(239,68,68,.45) 100%); animation:pulse 1.2s infinite; }
   @keyframes pulse { 0%,100%{opacity:0} 50%{opacity:1} }
 </style>
 </head>
@@ -97,103 +149,70 @@
 <div id="night"></div><div id="danger"></div><div id="toast"><i></i><span id="toastTxt"></span></div>
 
 <header>
-  <div style="display:flex;align-items:center">
+  <div class="hl">
     <span class="greet" id="greet"></span>
-    <span class="brand">Passo <b>1.3</b></span>
-    <span id="badge" class="pill sim">Sin OBD</span>
+    <span class="brand">PASSO 1.3</span>
+    <button id="badge" class="tap sim" onclick="openObd()"><i></i><span id="badgeTxt">Sin OBD</span></button>
   </div>
-  <div id="clock">--:--</div>
+  <div class="hr">
+    <button class="tap pill hbtn" onclick="saveParking()" data-ic="pin"><span id="parkLbl">Guardar parking</span></button>
+    <button class="tap hicon" onclick="toggleNight()" data-ic="moon" aria-label="Modo noche"></button>
+    <div id="clock" class="mono">--:--</div>
+  </div>
 </header>
 
 <main>
-  <!-- IZQUIERDA: datos del motor -->
+  <!-- Izquierda: motor -->
   <section class="col">
-    <div class="gauge" onclick="openObd()">
+    <div class="gauge tap" onclick="openObd()">
       <svg viewBox="0 0 200 150">
-        <path d="M 25 130 A 80 80 0 1 1 175 130" fill="none" stroke="#18181b" stroke-width="10" stroke-linecap="round"/>
-        <path id="arc" d="M 25 130 A 80 80 0 1 1 175 130" fill="none" stroke="#10b981" stroke-width="10" stroke-linecap="round" stroke-dasharray="330" stroke-dashoffset="330" style="transition:stroke-dashoffset .3s,stroke .3s"/>
+        <path d="M 25 130 A 80 80 0 1 1 175 130" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="11" stroke-linecap="round"/>
+        <path id="arc" d="M 25 130 A 80 80 0 1 1 175 130" fill="none" stroke="#10b981" stroke-width="11" stroke-linecap="round" stroke-dasharray="330" stroke-dashoffset="330" style="transition:stroke-dashoffset .3s,stroke .3s;filter:drop-shadow(0 0 6px currentColor)"/>
       </svg>
       <div class="c">
         <div id="speed">0</div>
         <div class="unit">km/h GPS</div>
-        <div id="rpm">-- RPM</div>
+        <div id="rpm" class="mono">-- RPM</div>
       </div>
     </div>
     <div class="tiles">
-      <div class="tile"><small>Agua</small><span id="temp">--</span></div>
-      <div class="tile"><small>Batería</small><span id="volt">--</span></div>
-      <div class="tile"><small>L/100</small><span id="cons">--</span></div>
+      <div class="tile"><small>Agua</small><span id="temp" class="mono">--</span></div>
+      <div class="tile"><small>Batería</small><span id="volt" class="mono">--</span></div>
+      <div class="tile"><small>L/100</small><span id="cons" class="mono">--</span></div>
+    </div>
+    <button class="tap pill lnk" onclick="openObd()" data-ic="obd">Diagnóstico OBD</button>
+  </section>
+
+  <!-- Centro: el auto -->
+  <section class="stage">
+    <div class="model">Toyota <b>Passo</b> · K3-VE 1.3</div>
+    <div class="car tap" id="car" onclick="openMaint()"></div>
+    <div id="alerts"></div>
+    <div class="stats">
+      <div class="stat"><small>Odómetro</small><b id="stOdo" class="mono">--</b></div>
+      <div class="stat"><small>Service</small><b id="stSvc" class="mono">--</b></div>
+      <div class="stat"><small>WoF</small><b id="stWof" class="mono">--</b></div>
+      <div class="stat"><small>Rego</small><b id="stRego" class="mono">--</b></div>
     </div>
   </section>
 
-  <!-- CENTRO: turno + alertas -->
-  <section class="col">
-    <div class="panel">
-      <h3>Turno · Delivery</h3>
-      <div class="shift-grid">
-        <div><b id="shTime">0:00</b><small>Tiempo</small></div>
-        <div><b id="shKm">0.0</b><small>Km</small></div>
-        <div><b id="shMoney">$0</b><small>Ganado</small></div>
-        <div><b id="shHr">$0</b><small>Por hora</small></div>
-        <div><b id="shKmM">$0.00</b><small>Por km</small></div>
-        <div><b id="shTrips">0</b><small>Pedidos</small></div>
-      </div>
-      <div class="row">
-        <button class="btn go" id="shBtn" onclick="toggleShift()">Iniciar turno</button>
-        <button class="btn amb" onclick="addTrip()">+ Pedido</button>
-      </div>
-    </div>
-    <div class="alerts" id="alerts"></div>
-  </section>
-
-  <!-- DERECHA: accesos -->
+  <!-- Derecha: apps -->
   <section class="col">
     <div class="apps" id="apps"></div>
+    <button class="tap pill work" id="workBtn" onclick="openShift()" data-ic="briefcase"><span id="workLbl">Modo trabajo</span></button>
   </section>
 </main>
 
 <footer>
-  <button onclick="saveParking()" data-ic="pin"><span id="parkLbl">Parking</span></button>
-  <button onclick="openMaint()" data-ic="wrench">Service</button>
-  <button onclick="openFuel()" data-ic="fuel">Nafta</button>
-  <button onclick="openObd()" data-ic="obd">OBD</button>
-  <button onclick="openSettings()" data-ic="sliders">Ajustes</button>
-  <button onclick="openAndroid('settings')" data-ic="grid">Sistema</button>
-  <button onclick="toggleNight()" data-ic="moon">Noche</button>
+  <button class="tap pill side" onclick="openSettings()" data-ic="palette">Ajustes launcher</button>
+  <div class="dock" id="dock"></div>
+  <button class="tap pill side" onclick="openAndroid()" data-ic="sliders">Ajustes Android</button>
 </footer>
 
-<div id="modal"><button class="x" onclick="closeModal()">✕</button><div id="modalBody"></div></div>
+<div id="modal"><button class="x tap" onclick="closeModal()" data-ic="close" aria-label="Cerrar"></button><div id="modalBody"></div></div>
 
 <script>
-/* ================= Estado persistente ================= */
-const DEF = {
-  odo: 0, // km totales acumulados por GPS (ajustable a mano)
-  maint: [
-    { name:'Aceite motor',  everyKm:5000,  lastKm:0 },
-    { name:'Filtro de aire',everyKm:15000, lastKm:0 },
-    { name:'Bujías',        everyKm:40000, lastKm:0 },
-    { name:'Frenos (revisar)', everyKm:10000, lastKm:0 }
-  ],
-  dates: [ { name:'WOF', due:'' }, { name:'Rego', due:'' } ],
-  fuel: [],
-  parking: null,
-  shift: null,       // {start, km0, money, trips}
-  obdAddr: '',
-  mono: false,       // íconos de apps en blanco y negro
-  greet: 'Hola, Fran',
-  bg: '#000000',
-  side: 'rhd',       // rhd = volante a la derecha (apps a la derecha, cerca del conductor)
-  apps: [
-    { n:'Maps',    ic:'map',   c:'#34d399', pkg:'com.google.android.apps.maps' },
-    { n:'Waze',    ic:'nav',   c:'#38bdf8', pkg:'com.waze' },
-    { n:'Uber',    ic:'car',   c:'#e4e4e7', pkg:'com.ubercab.driver' },
-    { n:'DiDi',    ic:'bag',   c:'#fb923c', pkg:'com.didiglobal.driver' },
-    { n:'Spotify', ic:'music', c:'#4ade80', pkg:'com.spotify.music' },
-    { n:'YT Music',ic:'play',  c:'#f87171', pkg:'com.google.android.apps.youtube.music' }
-  ]
-};
-
-/* ================= Íconos de línea propios ================= */
+/* ================= Íconos de línea propios (sin internet) ================= */
 const ICONS = {
   map:'<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/>',
   nav:'<path d="M12 3 5 20l7-4 7 4z"/>',
@@ -208,28 +227,159 @@ const ICONS = {
   obd:'<path d="M3 12h4l3-7 4 14 3-7h4"/>',
   sliders:'<path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>',
   grid:'<rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/>',
-  moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>'
+  moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
+  close:'<path d="M6 6l12 12M18 6 6 18"/>',
+  palette:'<path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.8 1.8-1.7 0-1.3-1-1.6-1-2.6 0-.9.7-1.6 1.6-1.6H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="14.5" cy="7" r="1.2"/>',
+  briefcase:'<rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M3 13h18"/>',
+  spark:'<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>',
+  chat:'<path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.2A8 8 0 1 1 20 12z"/>',
+  bolt:'<path d="M13 3 5 14h6l-1 7 8-11h-6z"/>',
+  star:'<path d="M12 3l1.8 5.5L19.5 10l-5.7 1.5L12 17l-1.8-5.5L4.5 10l5.7-1.5z"/>',
+  radio:'<rect x="3" y="8" width="18" height="12" rx="2.5"/><path d="M7 8l10-4"/><circle cx="15.5" cy="14" r="2.5"/><path d="M6.5 12.5h4M6.5 15.5h4"/>',
+  phone:'<path d="M5 4h3.5l1.5 4.5-2 1.3a11 11 0 0 0 6.2 6.2l1.3-2 4.5 1.5V19a1.5 1.5 0 0 1-1.6 1.5A16 16 0 0 1 3.5 5.6 1.5 1.5 0 0 1 5 4z"/>',
+  cast:'<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><path d="m10 8.5 4.5 2.5-4.5 2.5z"/>',
+  store:'<path d="M5 8h14l-1.2 11.2A2 2 0 0 1 15.8 21H8.2a2 2 0 0 1-2-1.8z"/><path d="M9 8a3 3 0 0 1 6 0"/>',
+  globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+  video:'<rect x="3" y="6" width="13" height="12" rx="2.5"/><path d="m16 10 5-3v10l-5-3"/>'
 };
 const svg = k => `<svg class="i" viewBox="0 0 24 24">${ICONS[k]||ICONS.app}</svg>`;
-let S;
-try { S = Object.assign({}, DEF, JSON.parse(localStorage.getItem('passo')||'{}')); } catch(e){ S = {...DEF}; }
-const save = () => { try{ localStorage.setItem('passo', JSON.stringify(S)); }catch(e){} };
 const $ = id => document.getElementById(id);
 
+/* ================= Estado persistente ================= */
+const DEF = {
+  odo: 0,
+  maint: [
+    { name:'Aceite motor',  everyKm:5000,  lastKm:0 },
+    { name:'Filtro de aire',everyKm:15000, lastKm:0 },
+    { name:'Bujías',        everyKm:40000, lastKm:0 },
+    { name:'Frenos (revisar)', everyKm:10000, lastKm:0 },
+    { name:'ATF (aceite de caja)', everyKm:40000, lastKm:0 }
+  ],
+  dates: [ { name:'WOF', due:'' }, { name:'Rego', due:'' } ],
+  fuel: [], parking: null, shift: null, obdAddr: '',
+  mono: false, greet: 'Hola, Fran', bg: '#000000', acc: '#10b981', side: 'rhd',
+  carColor: 'plata',
+  apps: [
+    { n:'Maps',    ic:'map',   c:'#34d399', pkg:'com.google.android.apps.maps' },
+    { n:'Waze',    ic:'nav',   c:'#38bdf8', pkg:'com.waze' },
+    { n:'Uber',    ic:'car',   c:'#e4e4e7', pkg:'com.ubercab.driver' },
+    { n:'DiDi',    ic:'bag',   c:'#fb923c', pkg:'com.didiglobal.driver' },
+    { n:'Spotify', ic:'music', c:'#4ade80', pkg:'com.spotify.music' },
+    { n:'YT Music',ic:'play',  c:'#f87171', pkg:'com.google.android.apps.youtube.music' }
+  ],
+  dock: [
+    { n:'CarPlay', ic:'cast',  c:'#e4e4e7', pkg:'com.zjinnova.zlink' },
+    { n:'Claude',  ic:'spark', c:'#fb923c', pkg:'com.anthropic.claude' },
+    { n:'ChatGPT', ic:'chat',  c:'#34d399', pkg:'com.openai.chatgpt' },
+    { n:'Gemini',  ic:'star',  c:'#38bdf8', pkg:'com.google.android.apps.bard' },
+    { n:'Android Auto', ic:'car', c:'#67e8f9', pkg:'com.google.android.projection.gearhead' }
+  ],
+  drawer: [
+    { n:'Radio',      ic:'radio', c:'#fbbf24', pkg:'com.syu.radio' },
+    { n:'Teléfono',   ic:'phone', c:'#34d399', pkg:'com.syu.bt' },
+    { n:'YouTube',    ic:'video', c:'#f87171', pkg:'com.google.android.youtube' },
+    { n:'Chrome',     ic:'globe', c:'#38bdf8', pkg:'com.android.chrome' },
+    { n:'Play Store', ic:'store', c:'#4ade80', pkg:'com.android.vending' },
+    { n:'Kimi',       ic:'bolt',  c:'#c084fc', pkg:'com.moonshot.kimichat' },
+    { n:'Torque',     ic:'obd',   c:'#fb923c', pkg:'org.prowl.torque' },
+    { n:'Netflix',    ic:'play',  c:'#ef4444', pkg:'com.netflix.mediaclient' }
+  ]
+};
+let S;
+try { S = Object.assign({}, DEF, JSON.parse(localStorage.getItem('passo')||'{}')); } catch(e){ S = {...DEF}; }
+['dock','drawer'].forEach(k=>{ if(!Array.isArray(S[k])) S[k]=DEF[k]; });
+if (!S.maint.some(m=>/ATF/.test(m.name))) S.maint.push({...DEF.maint[4]});
+const save = () => { try{ localStorage.setItem('passo', JSON.stringify(S)); }catch(e){} };
+let carPhoto = null; try { carPhoto = localStorage.getItem('passoCarPhoto'); } catch(e){}
+
 /* ================= Reloj ================= */
-setInterval(()=>{ const d=new Date(); $('clock').textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); },1000);
+function tick(){ const d=new Date(); $('clock').textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+tick(); setInterval(tick,1000);
+
+/* ================= El auto (ilustración propia o foto del usuario) ================= */
+const CAR_COLORS = {
+  plata:  ['#f4f4f5','#c4c7cc','#7c828b','#3f444b'],
+  blanco: ['#ffffff','#e7e8ea','#b8bcc2','#6b7078'],
+  negro:  ['#5b6068','#2b2f35','#15171a','#060708'],
+  rojo:   ['#fca5a5','#dc2626','#991b1b','#450a0a'],
+  azul:   ['#93c5fd','#2563eb','#1e3a8a','#0b1739']
+};
+function carSVG(){
+  const c = CAR_COLORS[S.carColor] || CAR_COLORS.plata;
+  return `<svg viewBox="60 28 480 232" aria-label="Passo">
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${c[0]}"/><stop offset=".38" stop-color="${c[1]}"/><stop offset=".72" stop-color="${c[2]}"/><stop offset="1" stop-color="${c[3]}"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3b4350"/><stop offset=".55" stop-color="#0f1217"/><stop offset="1" stop-color="#1c222b"/>
+    </linearGradient>
+    <radialGradient id="rim" cx=".5" cy=".45" r=".6">
+      <stop offset="0" stop-color="#f4f4f5"/><stop offset=".7" stop-color="#a1a1aa"/><stop offset="1" stop-color="#52525b"/>
+    </radialGradient>
+    <radialGradient id="shadow" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#000" stop-opacity=".9"/><stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="beam" cx="0" cy=".5" r="1">
+      <stop offset="0" stop-color="#fff7d6" stop-opacity=".55"/><stop offset="1" stop-color="#fff7d6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="300" cy="240" rx="235" ry="18" fill="url(#shadow)"/>
+  <path class="lamp" id="beamL" d="M92 166 L0 140 L0 200 Z" fill="url(#beam)" opacity="0"/>
+  <!-- carrocería: hatchback corto y alto -->
+  <path d="M112 216 C98 216 90 208 90 196 L92 178 C94 164 106 156 124 152 L192 140 C214 106 238 76 266 62 C310 46 402 44 446 48 C476 52 494 76 502 104 C508 128 512 160 512 190 C512 208 506 216 494 216 L468 216 A 50 50 0 0 0 366 216 L238 216 A 50 50 0 0 0 136 216 Z" fill="url(#body)"/>
+  <path d="M100 158 C200 146 300 140 508 142" fill="none" stroke="#fff" stroke-opacity=".38" stroke-width="2"/>
+  <path d="M92 186 C200 180 400 178 512 182" fill="none" stroke="#000" stroke-opacity=".18" stroke-width="2"/>
+  <!-- vidrios -->
+  <path d="M206 136 C226 108 246 84 272 72 L338 66 L340 134 Z" fill="url(#glass)"/>
+  <path d="M350 66 L442 62 C466 66 480 84 489 114 L491 132 L352 134 Z" fill="url(#glass)"/>
+  <path d="M216 128 C232 106 248 90 266 80" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="5" stroke-linecap="round"/>
+  <path d="M440 64 L446 132" stroke="${c[2]}" stroke-width="6"/>
+  <!-- puertas y manijas -->
+  <path d="M345 66 L346 210" stroke="#000" stroke-opacity=".28" stroke-width="2"/>
+  <path d="M238 142 L240 204" stroke="#000" stroke-opacity=".18" stroke-width="2"/>
+  <rect x="300" y="150" width="24" height="6" rx="3" fill="#000" fill-opacity=".3"/>
+  <rect x="420" y="150" width="24" height="6" rx="3" fill="#000" fill-opacity=".3"/>
+  <!-- espejo -->
+  <path d="M204 138 L222 128 L230 140 L212 146 Z" fill="${c[2]}"/>
+  <!-- ópticas -->
+  <path d="M92 170 C96 160 106 156 126 154 L130 168 C116 170 104 172 92 172 Z" fill="#fde68a" class="lamp" id="headL" opacity=".9"/>
+  <path d="M497 104 C504 122 508 140 510 160 L500 162 C499 144 496 126 491 108 Z" fill="#ef4444"/>
+  <!-- paragolpes -->
+  <path d="M92 198 L134 200" stroke="#000" stroke-opacity=".35" stroke-width="3" stroke-linecap="round"/>
+  <path d="M470 202 L510 200" stroke="#000" stroke-opacity=".35" stroke-width="3" stroke-linecap="round"/>
+  <!-- ruedas -->
+  ${[187,417].map(x=>`
+  <circle cx="${x}" cy="216" r="42" fill="#0b0b0c"/>
+  <circle cx="${x}" cy="216" r="28" fill="url(#rim)"/>
+  ${[0,45,90,135].map(a=>`<rect x="${x-2.5}" y="191" width="5" height="50" rx="2.5" fill="#71717a" transform="rotate(${a} ${x} 216)"/>`).join('')}
+  <circle cx="${x}" cy="216" r="8" fill="#d4d4d8"/>`).join('')}
+</svg>`;
+}
+function renderCar(){
+  $('car').innerHTML = carPhoto ? `<img src="${carPhoto}" alt="Mi Passo">` : carSVG();
+}
+function pickCarPhoto(){
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+  inp.onchange=()=>{ const f=inp.files[0]; if(!f) return; const r=new FileReader();
+    r.onload=()=>{ const img=new Image(); img.onload=()=>{
+      const w=1000, h=Math.round(img.height*w/img.width), cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h); carPhoto=cv.toDataURL('image/jpeg',.82);
+      try{ localStorage.setItem('passoCarPhoto',carPhoto); }catch(e){ toast('La foto es muy pesada','err'); }
+      renderCar(); openSettings(); toast('Foto del auto guardada');
+    }; img.src=r.result; }; r.readAsDataURL(f); };
+  inp.click();
+}
+function clearCarPhoto(){ carPhoto=null; try{ localStorage.removeItem('passoCarPhoto'); }catch(e){} renderCar(); openSettings(); }
 
 /* ================= Lanzar apps (nativo vía Capacitor) ================= */
 function openApp(pkg){
   const AL = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AppLauncher;
-  if (AL) AL.openUrl({ url: pkg }).catch(()=>toast('No se pudo abrir '+pkg));
-  else toast('Solo funciona dentro de la app (APK)');
+  if (AL) AL.openUrl({ url: pkg }).catch(()=>toast('No está instalada: '+pkg,'warn'));
+  else toast('Solo funciona dentro de la app (APK)','warn');
 }
-function openAndroid(){ const AL=window.Capacitor?.Plugins?.AppLauncher; if(AL) AL.openUrl({url:'com.android.settings'}); else toast('Solo en la APK'); }
-// Migrar accesos guardados por versiones viejas (que usaban emoji)
-S.apps = S.apps.map((a,i)=>{ const d=DEF.apps.find(x=>x.pkg===a.pkg)||DEF.apps[i]||{}; return { n:a.n, pkg:a.pkg, ic:a.ic||d.ic||'app', c:a.c||d.c||'#d4d4d8' }; });
+function openAndroid(){ openApp('com.android.settings'); }
 
-// Íconos reales de las apps instaladas (los entrega Android vía el plugin AppIcons)
 let realIcons = {};
 try { realIcons = JSON.parse(localStorage.getItem('passoIcons')||'{}'); } catch(e){}
 function iconPlugin(){
@@ -240,22 +390,28 @@ function iconPlugin(){
 async function loadIcons(){
   const P = iconPlugin(); if (!P) return;
   try {
-    const r = await P.get({ packages: S.apps.map(a=>a.pkg) });
+    const r = await P.get({ packages: [...S.apps, ...S.dock, ...S.drawer].map(a=>a.pkg) });
     realIcons = r.icons || {};
     try { localStorage.setItem('passoIcons', JSON.stringify(realIcons)); } catch(e){}
     renderApps();
   } catch(e) {}
 }
+const icoHTML = a => realIcons[a.pkg] ? `<img src="${realIcons[a.pkg]}" alt="">` : `<span class="fb" style="--c:${a.c}">${svg(a.ic)}</span>`;
 function renderApps(){
-  document.body.classList.toggle('mono', !!S.mono);
-  $('apps').innerHTML = S.apps.map(a=>{
-    const real = realIcons[a.pkg];
-    const ico = real ? `<img src="${real}" alt="">` : `<span class="fb" style="--c:${a.c}">${svg(a.ic)}</span>`;
-    return `<button class="app" onclick="openApp('${a.pkg}')"><span class="ico">${ico}</span>${a.n}</button>`;
-  }).join('');
+  document.body.classList.toggle('mono-ic', !!S.mono);
+  $('apps').innerHTML = S.apps.map(a=>`<button class="app tap" onclick="openApp('${a.pkg}')"><span class="ico">${icoHTML(a)}</span>${a.n}</button>`).join('');
+  const half = Math.ceil(S.dock.length/2);
+  const dk = a => `<button class="dk tap" style="--c:${a.c}" onclick="openApp('${a.pkg}')">${realIcons[a.pkg]?`<img src="${realIcons[a.pkg]}" alt="">`:svg(a.ic)}${a.n}</button>`;
+  $('dock').innerHTML = S.dock.slice(0,half).map(dk).join('') +
+    `<button class="allapps tap" onclick="openDrawer()" aria-label="Todas las apps">${svg('grid')}</button>` +
+    S.dock.slice(half).map(dk).join('');
 }
-document.querySelectorAll('footer button[data-ic]').forEach(b=>b.insertAdjacentHTML('afterbegin', svg(b.dataset.ic)));
-renderApps(); loadIcons();
+function openDrawer(){
+  openModal(`<h2>Apps</h2><div class="drawer">`+
+    [...S.apps, ...S.dock, ...S.drawer].map(a=>`<button class="dr tap" onclick="closeModal();openApp('${a.pkg}')">${icoHTML(a)}${a.n}</button>`).join('')+
+    `<button class="dr tap" onclick="closeModal();openAndroid()"><span class="fb" style="--c:#a1a1aa">${svg('sliders')}</span>Ajustes Android</button></div>`);
+}
+document.querySelectorAll('[data-ic]').forEach(b=>b.insertAdjacentHTML('afterbegin', svg(b.dataset.ic)));
 
 /* ================= Aviso flotante ================= */
 let tt; function toast(m, kind){
@@ -263,15 +419,16 @@ let tt; function toast(m, kind){
   clearTimeout(tt); tt=setTimeout(()=>t.className='',2800);
 }
 
-/* ================= Apariencia: saludo, fondo, lado del volante ================= */
-const BGS = [ ['#000000','Negro'], ['#070b14','Azul noche'], ['#0f1318','Grafito'], ['#140709','Rojo'], ['#05120e','Esmeralda'] ];
+/* ================= Apariencia ================= */
+const BGS = [ ['#000000','Negro OLED'], ['#070b14','Azul noche'], ['#0f1318','Grafito'], ['#140709','Bordó'], ['#05120e','Esmeralda'] ];
+const ACCS = [ ['#10b981','Verde'], ['#38bdf8','Celeste'], ['#f59e0b','Ámbar'], ['#ef4444','Rojo'], ['#a78bfa','Violeta'] ];
 function applyLook(){
   $('greet').textContent = S.greet || '';
   $('greet').style.display = S.greet ? '' : 'none';
   document.documentElement.style.setProperty('--bg', S.bg||'#000');
+  document.documentElement.style.setProperty('--acc', S.acc||'#10b981');
   document.querySelector('main').classList.toggle('lhd', S.side==='lhd');
 }
-applyLook();
 
 /* ================= GPS real: velocidad + km ================= */
 let gpsLast=null, speedKmh=0;
@@ -291,13 +448,10 @@ setInterval(save,15000);
 
 /* ================= OBD2 (ELM327 Bluetooth clásico) ================= */
 const obd = { rpm:null, temp:null, volt:null, maf:null, iat:null, mil:null, dtcCount:null, proto:'', ok:false, sim:false };
-let BT = window.bluetoothSerial; // plugin cordova-plugin-bluetooth-serial (se completa en deviceready)
+let BT = window.bluetoothSerial;
 let buf='', waiter=null, pollTimer=null, pollN=0;
-
-// Todos los comandos pasan por esta cola: el ELM327 contesta de a uno
 let cmdQueue = Promise.resolve();
 function cmd(c, ms){ const p = cmdQueue.then(()=>btWrite(c, ms)); cmdQueue = p.catch(()=>{}); return p; }
-
 function btWrite(cmd, ms){
   return new Promise(res=>{
     waiter = res; buf='';
@@ -316,7 +470,7 @@ function parseHex(resp, pid){
 async function obdInit(){
   await cmd('ATZ', 4000);
   for (const c of ['ATE0','ATL0','ATS0','ATH0','ATSP0']) await cmd(c);
-  await cmd('0100', 10000); // fuerza la detección de protocolo (puede tardar)
+  await cmd('0100', 10000);
   obd.proto = (await cmd('ATDPN')).replace(/[\s>]/g,'').toUpperCase();
 }
 async function obdPoll(){
@@ -325,14 +479,13 @@ async function obdPoll(){
   r = parseHex(await cmd('0105'),'05'); if(r&&r.length>=1) obd.temp = r[0]-40;
   r = parseHex(await cmd('0142'),'42'); if(r&&r.length>=2) obd.volt = ((r[0]*256)+r[1])/1000;
   r = parseHex(await cmd('0110'),'10'); obd.maf = (r&&r.length>=2) ? ((r[0]*256)+r[1])/100 : null;
-  // Cada ~5 vueltas: temperatura de admisión. Cada ~25: luz de check engine y cantidad de fallas.
   if (pollN % 5 === 0) { r = parseHex(await cmd('010F'),'0F'); obd.iat = (r&&r.length>=1) ? r[0]-40 : null; }
   if (pollN % 25 === 0) { r = parseHex(await cmd('0101'),'01'); if(r&&r.length>=1){ obd.mil = !!(r[0]&0x80); obd.dtcCount = r[0]&0x7F; } }
   pollN++;
   obd.ok = true; renderObd();
 }
 
-/* ---------- Códigos de falla (DTC) reales: modo 03 leer, modo 04 borrar ---------- */
+/* ---------- Códigos de falla (DTC): modo 03 leer, modo 04 borrar ---------- */
 const DTC_INFO = {
   P0100:'Sensor MAF (caudal de aire): falla de circuito', P0101:'Sensor MAF: lectura fuera de rango', P0102:'Sensor MAF: señal baja', P0103:'Sensor MAF: señal alta',
   P0110:'Sensor de temperatura de admisión: falla de circuito', P0115:'Sensor de temperatura del refrigerante: falla de circuito', P0116:'Sensor de temperatura del refrigerante: lectura fuera de rango',
@@ -364,7 +517,7 @@ function parseDtcResponse(resp){
   const bytes = [];
   if (isCan) {
     const all = lines.join(''); const i = all.indexOf('43'); if (i<0) return null;
-    const h = all.slice(i+4); // saltea "43" y el byte de cantidad
+    const h = all.slice(i+4);
     for (let j=0;j+1<h.length;j+=2) bytes.push(parseInt(h.substr(j,2),16));
   } else {
     let found=false;
@@ -389,11 +542,11 @@ async function scanDtc(){
   renderDtc();
 }
 function renderDtc(){
-  const s=S.lastScan; if(!s){ $('dtcBox').innerHTML=''; return; }
+  const s=S.lastScan, box=$('dtcBox'); if(!box) return; if(!s){ box.innerHTML=''; return; }
   const when = new Date(s.t).toLocaleString();
-  $('dtcBox').innerHTML = s.codes.length
+  box.innerHTML = s.codes.length
     ? s.codes.map(c=>`<div class="dtc"><b>${c}</b><span>${dtcDesc(c)}</span></div>`).join('') +
-      `<div class="item"><span>Borrar códigos<small>Apaga el check engine, pero no arregla la causa: si la falla sigue, el código vuelve.</small></span><button class="btn stop" onclick="clearDtc()">Borrar</button></div>` +
+      `<div class="item"><span>Borrar códigos<small>Apaga el check engine, pero no arregla la causa: si la falla sigue, el código vuelve.</small></span><button class="btn stop tap" onclick="clearDtc()">Borrar</button></div>` +
       `<small style="color:var(--mut)">Escaneo: ${when}</small>`
     : `<div class="item"><span>Sin códigos de falla guardados<small>Escaneo: ${when}</small></span></div>`;
 }
@@ -404,21 +557,20 @@ async function clearDtc(){
   else toast('La ECU no aceptó el borrado','err');
 }
 function connectObd(addr){
-  if(!BT){ toast('OBD real solo en la APK. Usá modo demo.'); return; }
+  if(!BT){ toast('OBD real solo en la APK. Usá modo demo.','warn'); return; }
   BT.connect(addr, async ()=>{
     S.obdAddr=addr; save();
     BT.subscribe('>', d=>{ buf+=d; if(waiter){ const w=waiter; waiter=null; w(buf);} });
     await obdInit(); obd.sim=false; clearInterval(pollTimer);
     const loop=async()=>{ try{ await obdPoll(); }catch(e){} pollTimer=setTimeout(loop,400); }; loop();
     toast('OBD conectado'); closeModal();
-  }, ()=>{ toast('No pude conectar al OBD'); obd.ok=false; renderObd(); });
+  }, ()=>{ toast('No pude conectar al OBD','err'); obd.ok=false; renderObd(); });
 }
-// Modo demo para probar la pantalla sin auto
 function startSim(){
   obd.sim=true; clearInterval(pollTimer);
   let t=0; pollTimer=setInterval(()=>{ t+=0.1;
-    obd.rpm=1200+Math.abs(Math.sin(t))*2200; obd.temp=Math.min(104,60+t*2); obd.volt=14.1-Math.random()*.1; obd.maf=3+Math.abs(Math.sin(t))*8; obd.ok=true;
-    if(!navigator.geolocation||!gpsLast){ speedKmh=Math.abs(Math.sin(t))*80; $('speed').textContent=Math.round(speedKmh); }
+    obd.rpm=1200+Math.abs(Math.sin(t))*2200; obd.temp=Math.min(91,60+t*2); obd.volt=14.1-Math.random()*.1; obd.maf=3+Math.abs(Math.sin(t))*8; obd.ok=true;
+    if(!gpsLast){ speedKmh=Math.abs(Math.sin(t))*80; $('speed').textContent=Math.round(speedKmh); }
     renderObd();
   },400); closeModal();
 }
@@ -426,59 +578,87 @@ function renderObd(){
   const rpm=obd.rpm, t=obd.temp, v=obd.volt;
   $('rpm').textContent = rpm!=null ? Math.round(rpm)+' RPM' : '-- RPM';
   $('temp').textContent = t!=null ? Math.round(t)+'°' : '--';
-  $('volt').innerHTML = v!=null ? v.toFixed(1)+'<small style="display:inline;font-size:13px;color:#71717a;letter-spacing:0">V</small>' : '--';
-  // Consumo instantáneo estimado con MAF (si el auto lo reporta): L/h = MAF/(14.7*740)*3600
+  $('volt').innerHTML = v!=null ? v.toFixed(1)+'<small>V</small>' : '--';
   let c='--';
   if (obd.maf!=null && speedKmh>8) { const lph=obd.maf/(14.7*740)*3600; c=(lph/speedKmh*100).toFixed(1); }
   $('cons').textContent=c;
   const arc=$('arc'); const frac=Math.min(1,(rpm||0)/6500);
   arc.style.strokeDashoffset = 330-330*frac;
-  const hot=t!=null&&t>=100, lowV=v!=null&&v<12.0 , cold=t!=null&&t<60;
-  arc.setAttribute('stroke', hot?'#ef4444': cold?'#38bdf8':'#10b981');
+  const hot=t!=null&&t>=100, lowV=v!=null&&v<12.0, cold=t!=null&&t<60;
+  const col = hot?'#ef4444': cold?'#38bdf8': (S.acc||'#10b981');
+  arc.setAttribute('stroke', col); arc.style.color = col;
   $('danger').style.display = hot?'block':'none';
   const b=$('badge');
-  b.className='pill'+(hot?' bad':cold?' cold':'');
-  b.textContent = obd.sim?'Demo': !obd.ok?'Sin OBD': hot?'⚠ Temp '+Math.round(t)+'°': obd.mil?'⚠ Check engine'+(obd.dtcCount?' ('+obd.dtcCount+')':''): cold?'Motor frío':'● Motor óptimo';
+  b.className='tap'+(hot?' bad':cold?' cold':'');
+  $('badgeTxt').textContent = obd.sim?'Demo': !obd.ok?'Sin OBD': hot?'Temp '+Math.round(t)+'°': obd.mil?'Check engine'+(obd.dtcCount?' ('+obd.dtcCount+')':''): cold?'Motor frío · '+Math.round(t)+'°':'Motor óptimo · '+Math.round(t)+'°';
+  if(obd.sim) b.classList.add('sim');
   if(!obd.ok && !obd.sim) b.classList.add('sim');
-  if(obd.mil && !hot && !obd.sim) b.className='pill bad';
+  if(obd.mil && !hot && !obd.sim) b.className='tap bad';
+  const hl=$('headL'); if(hl) hl.setAttribute('opacity', obd.ok||speedKmh>3 ? '1' : '.75');
   refreshAlerts(hot,lowV);
 }
 
-/* ================= Alertas (service, WOF/rego, batería) ================= */
+/* ================= Alertas + datos del auto ================= */
+const fmtKm = n => Math.round(n).toLocaleString('es-AR');
+function daysTo(d){ return d ? Math.ceil((new Date(d)-new Date())/864e5) : null; }
 function refreshAlerts(hot,lowV){
   const a=[];
-  if(hot) a.push('⚠ Motor recalentado: parate');
-  if(lowV) a.push('⚠ Batería baja (<12 V)');
-  S.maint.forEach(m=>{ const left=m.everyKm-(S.odo-m.lastKm); if(left<=0) a.push(m.name+' vencido'); else if(left<500) a.push(m.name+' en '+Math.round(left)+' km'); });
-  S.dates.forEach(d=>{ if(!d.due) return; const days=Math.ceil((new Date(d.due)-new Date())/864e5); if(days<0) a.push(d.name+' VENCIDO'); else if(days<=30) a.push(d.name+' en '+days+' días'); });
-  $('alerts').textContent = a.slice(0,2).join('   ·   ');
+  if(hot) a.push(['Motor recalentado: parate','r']);
+  if(lowV) a.push(['Batería baja (menos de 12 V)','r']);
+  S.maint.forEach(m=>{ const left=m.everyKm-(S.odo-m.lastKm); if(left<=0) a.push([m.name+' vencido','r']); else if(left<500) a.push([m.name+' en '+Math.round(left)+' km','']); });
+  S.dates.forEach(d=>{ const days=daysTo(d.due); if(days==null) return; if(days<0) a.push([d.name+' vencido','r']); else if(days<=30) a.push([d.name+' en '+days+' días','']); });
+  $('alerts').innerHTML = a.slice(0,3).map(x=>`<span class="${x[1]}">${x[0]}</span>`).join('');
+  // tarjetas bajo el auto
+  $('stOdo').textContent = S.odo>0 ? fmtKm(S.odo)+' km' : 'Cargar';
+  const next = S.maint.map(m=>({n:m.name, left:m.everyKm-(S.odo-m.lastKm)})).sort((x,y)=>x.left-y.left)[0];
+  const sv=$('stSvc'); sv.textContent = next.left<=0 ? 'Vencido' : fmtKm(next.left)+' km'; sv.className='mono '+(next.left<=0?'bad':next.left<500?'warn':'good');
+  [['stWof',0],['stRego',1]].forEach(([id,i])=>{ const d=daysTo(S.dates[i]&&S.dates[i].due), el=$(id);
+    el.textContent = d==null ? 'Cargar' : d<0 ? 'Vencido' : d+' días';
+    el.className = 'mono '+(d==null?'':d<0?'bad':d<=30?'warn':'good'); });
 }
 
-/* ================= Turno delivery ================= */
+/* ================= Turno (modo trabajo) ================= */
 function toggleShift(){
-  if(!S.shift){ S.shift={start:Date.now(),km0:S.odo,money:0,trips:0}; }
-  else if(confirm('¿Terminar turno?')){ const s=S.shift; showShiftSummary(s); S.shift=null; }
-  save(); renderShift();
+  if(!S.shift){ S.shift={start:Date.now(),km0:S.odo,money:0,trips:0}; save(); toast('Turno iniciado'); }
+  else if(confirm('¿Terminar turno?')){ const s=S.shift; S.shift=null; save(); renderShift(); showShiftSummary(s); return; }
+  renderShift(); openShift();
 }
 function addTrip(){
-  if(!S.shift){ toast('Iniciá el turno primero'); return; }
+  if(!S.shift){ toast('Iniciá el turno primero','warn'); return; }
   const v=parseFloat(prompt('Ganancia del pedido ($)'));
   if(!isNaN(v)&&v>0){ S.shift.money+=v; S.shift.trips++; save(); renderShift(); }
 }
 function showShiftSummary(s){
   const h=(Date.now()-s.start)/36e5, km=S.odo-s.km0;
-  openModal(`<h2>Resumen del turno</h2>
-    <div class="item">Tiempo<b>${h.toFixed(1)} h</b></div>
-    <div class="item">Km<b>${km.toFixed(1)}</b></div>
-    <div class="item">Ganado<b>$${s.money.toFixed(2)}</b></div>
-    <div class="item">Por hora<b>$${(s.money/Math.max(h,.01)).toFixed(2)}</b></div>
-    <div class="item">Por km<b>$${(s.money/Math.max(km,.1)).toFixed(2)}</b></div>`);
+  openModal(`<h2>Resumen del turno</h2><div class="grid4">
+    <div class="big"><b class="mono">${h.toFixed(1)} h</b><small>Tiempo</small></div>
+    <div class="big"><b class="mono">${km.toFixed(1)}</b><small>Km</small></div>
+    <div class="big"><b class="mono">$${s.money.toFixed(0)}</b><small>Ganado</small></div>
+    <div class="big"><b class="mono">$${(s.money/Math.max(h,.01)).toFixed(0)}</b><small>Por hora</small></div></div>`);
+}
+function openShift(){
+  openModal(`<h2>Modo trabajo <small>delivery</small></h2>
+    <div class="grid4" style="margin-bottom:1.4vh">
+      <div class="big"><b class="mono" id="shTime">0:00</b><small>Tiempo</small></div>
+      <div class="big"><b class="mono" id="shKm">0.0</b><small>Km</small></div>
+      <div class="big"><b class="mono" id="shMoney">$0</b><small>Ganado</small></div>
+      <div class="big"><b class="mono" id="shTrips">0</b><small>Pedidos</small></div>
+      <div class="big"><b class="mono" id="shHr">$0</b><small>Por hora</small></div>
+      <div class="big"><b class="mono" id="shKmM">$0.00</b><small>Por km</small></div>
+      <button class="big tap" onclick="closeModal();openApp(S.apps[2].pkg)"><b style="font-size:2.6vh">${S.apps[2].n}</b><small>Abrir</small></button>
+      <button class="big tap" onclick="closeModal();openApp(S.apps[3].pkg)"><b style="font-size:2.6vh">${S.apps[3].n}</b><small>Abrir</small></button>
+    </div>
+    <div class="row"><button class="btn tap" id="shBtn" onclick="toggleShift()">Iniciar turno</button><button class="btn amb tap" onclick="addTrip()">+ Pedido</button></div>`);
+  renderShift();
 }
 function renderShift(){
   const s=S.shift;
+  $('workLbl').textContent = s ? 'Turno · '+Math.floor((Date.now()-s.start)/36e5)+':'+String(Math.floor(((Date.now()-s.start)/6e4)%60)).padStart(2,'0') : 'Modo trabajo';
+  $('workBtn').classList.toggle('on', !!s);
+  if(!$('shTime')) return;
   $('shBtn').textContent = s?'Terminar turno':'Iniciar turno';
-  $('shBtn').className = 'btn '+(s?'stop':'go');
-  if(!s){ ['shTime','shKm','shMoney','shHr','shKmM','shTrips'].forEach(i=>$(i).textContent=i=='shTime'?'0:00':i=='shKm'?'0.0':i=='shTrips'?'0':'$0'); return; }
+  $('shBtn').className = 'btn tap '+(s?'stop':'go');
+  if(!s) return;
   const ms=Date.now()-s.start, h=ms/36e5, km=S.odo-s.km0;
   $('shTime').textContent=Math.floor(h)+':'+String(Math.floor((ms/6e4)%60)).padStart(2,'0');
   $('shKm').textContent=km.toFixed(1);
@@ -487,72 +667,85 @@ function renderShift(){
   $('shKmM').textContent='$'+(s.money/Math.max(km,.1)).toFixed(2);
   $('shTrips').textContent=s.trips;
 }
-setInterval(renderShift,5000); renderShift();
+setInterval(renderShift,5000);
 
 /* ================= Parking ================= */
 function saveParking(){
-  if(!gpsLast){ toast('Sin señal GPS todavía'); return; }
-  S.parking={lat:gpsLast.lat,lon:gpsLast.lon,t:Date.now()}; save(); $('parkLbl').textContent='Guardado ✓'; setTimeout(()=>$('parkLbl').textContent='Parking',2500);
+  if(!gpsLast){ toast('Sin señal GPS todavía','warn'); return; }
+  S.parking={lat:gpsLast.lat,lon:gpsLast.lon,t:Date.now()}; save(); $('parkLbl').textContent='Guardado'; setTimeout(()=>$('parkLbl').textContent='Guardar parking',2500);
   toast('Parking guardado');
 }
 
-/* ================= Modales ================= */
+/* ================= Paneles ================= */
 function openModal(h){ $('modalBody').innerHTML=h; $('modal').classList.add('on'); }
 function closeModal(){ $('modal').classList.remove('on'); refreshAlerts(); }
 
 function openMaint(){
-  openModal(`<h2>Service · odómetro ${Math.round(S.odo)} km</h2>
-    <div class="item"><span>Corregir odómetro (km del tablero)</span><span><input id="odoIn" type="number" value="${Math.round(S.odo)}"> <button class="btn amb" onclick="S.odo=+$('odoIn').value;save();openMaint()">OK</button></span></div>`+
-    S.maint.map((m,i)=>{ const left=Math.round(m.everyKm-(S.odo-m.lastKm)); return `<div class="item"><span>${m.name}<small>${left>0?'Faltan '+left+' km':'Vencido hace '+(-left)+' km'} (cada ${m.everyKm})</small></span><button class="btn go" onclick="S.maint[${i}].lastKm=S.odo;save();openMaint()">Hecho hoy</button></div>`; }).join('')+
-    S.dates.map((d,i)=>`<div class="item"><span>${d.name}<small>Vence</small></span><input type="date" value="${d.due}" onchange="S.dates[${i}].due=this.value;save()"></div>`).join(''));
+  openModal(`<h2>Service <small>odómetro ${fmtKm(S.odo)} km</small></h2>
+    <div class="item"><span>Corregir odómetro<small>Poné los km que marca el tablero</small></span><span class="row"><input id="odoIn" type="number" value="${Math.round(S.odo)}"><button class="btn amb tap" onclick="S.odo=+$('odoIn').value;save();openMaint()">OK</button></span></div>`+
+    S.maint.map((m,i)=>{ const left=Math.round(m.everyKm-(S.odo-m.lastKm)); return `<div class="item"><span>${m.name}<small>${left>0?'Faltan '+fmtKm(left)+' km':'Vencido hace '+fmtKm(-left)+' km'} (cada ${fmtKm(m.everyKm)} km)</small></span><button class="btn go tap" onclick="S.maint[${i}].lastKm=S.odo;save();openMaint()">Hecho hoy</button></div>`; }).join('')+
+    S.dates.map((d,i)=>`<div class="item"><span>${d.name}<small>Fecha de vencimiento</small></span><input type="date" value="${d.due}" onchange="S.dates[${i}].due=this.value;save()"></div>`).join('')+
+    `<div class="row" style="margin-top:1vh"><button class="btn tap" onclick="openFuel()">Registro de nafta</button></div>`);
 }
 function openFuel(){
   const f=S.fuel; let avg='--';
   const full=f.filter(x=>x.full);
   if(full.length>=2){ const a=full[0], b=full[full.length-1]; const km=b.odo-a.odo; const L=full.slice(1).reduce((s,x)=>s+x.liters,0); if(km>0) avg=(L/km*100).toFixed(1); }
-  openModal(`<h2>Nafta · promedio real: ${avg} L/100km</h2>
-    <div class="item"><span>Cargué (litros)</span><span><input id="fl" type="number" step="0.01"> <button class="btn go" onclick="addFuel(true)">Tanque lleno</button> <button class="btn" onclick="addFuel(false)">Parcial</button></span></div>`+
-    f.slice(-6).reverse().map(x=>`<div class="item"><span>${new Date(x.t).toLocaleDateString()} · ${x.liters} L<small>${Math.round(x.odo)} km · ${x.full?'lleno':'parcial'}</small></span></div>`).join(''));
+  openModal(`<h2>Nafta <small>promedio real: ${avg} L/100 km</small></h2>
+    <div class="item"><span>Cargué (litros)</span><span class="row"><input id="fl" type="number" step="0.01"><button class="btn go tap" onclick="addFuel(true)">Tanque lleno</button><button class="btn tap" onclick="addFuel(false)">Parcial</button></span></div>`+
+    f.slice(-6).reverse().map(x=>`<div class="item"><span>${new Date(x.t).toLocaleDateString()} · ${x.liters} L<small>${fmtKm(x.odo)} km · ${x.full?'lleno':'parcial'}</small></span></div>`).join(''));
 }
 function addFuel(full){ const l=parseFloat($('fl').value); if(!(l>0)) return; S.fuel.push({t:Date.now(),liters:l,odo:S.odo,full}); save(); openFuel(); }
 
 function openObd(){
-  let body=`<h2>OBD2 · K3-VE</h2>
-    <div class="item"><span>Agua<small>Temperatura refrigerante</small></span><b>${obd.temp!=null?Math.round(obd.temp)+'°C':'--'}</b></div>
-    <div class="item"><span>Batería<small>Voltaje</small></span><b>${obd.volt!=null?obd.volt.toFixed(1)+' V':'--'}</b></div>
-    <div class="item"><span>Admisión<small>Temperatura del aire que entra al motor</small></span><b>${obd.iat!=null?Math.round(obd.iat)+'°C':'--'}</b></div>
-    <div class="item"><span>MAF<small>Si el auto no lo reporta, L/100 queda en --</small></span><b>${obd.maf!=null?obd.maf.toFixed(1)+' g/s':'no disponible'}</b></div>
-    <div class="item"><span>Check engine<small>${obd.proto?'Protocolo '+obd.proto:'Se lee al conectar'}</small></span><b>${obd.mil==null?'--':obd.mil?'ENCENDIDO':'apagado'}</b></div>
-    <h2 style="margin-top:12px">Códigos de falla</h2>
-    <div class="row" style="margin-bottom:10px"><button class="btn go" onclick="scanDtc()">Escanear códigos</button><button class="btn amb" onclick="startSim()">Modo demo</button></div>
+  let body=`<h2>OBD2 <small>K3-VE</small></h2>
+    <div class="grid4" style="margin-bottom:1.4vh">
+      <div class="big"><b class="mono">${obd.temp!=null?Math.round(obd.temp)+'°':'--'}</b><small>Agua</small></div>
+      <div class="big"><b class="mono">${obd.volt!=null?obd.volt.toFixed(1)+' V':'--'}</b><small>Batería</small></div>
+      <div class="big"><b class="mono">${obd.iat!=null?Math.round(obd.iat)+'°':'--'}</b><small>Admisión</small></div>
+      <div class="big"><b class="mono">${obd.mil==null?'--':obd.mil?'ON':'OFF'}</b><small>Check engine</small></div>
+    </div>
+    <div class="item"><span>MAF<small>Si el auto no lo reporta, L/100 queda en --</small></span><b class="mono">${obd.maf!=null?obd.maf.toFixed(1)+' g/s':'no disponible'}</b></div>
+    <div class="row" style="margin:1.2vh 0"><button class="btn go tap" onclick="scanDtc()">Escanear códigos de falla</button><button class="btn amb tap" onclick="startSim()">Modo demo</button></div>
     <div id="dtcBox"></div>`;
-  if(BT){ body+=`<h2 style="margin-top:12px">Adaptadores emparejados</h2><div id="btList">Buscando…</div>`; }
-  else body+=`<div class="item">Conexión Bluetooth disponible solo dentro de la APK.</div>`;
+  if(BT){ body+=`<h2 style="margin-top:1.6vh">Adaptadores emparejados</h2><div id="btList">Buscando…</div>`; }
+  else body+=`<div class="item">La conexión Bluetooth funciona solo dentro de la APK.</div>`;
   openModal(body);
   renderDtc();
-  if(BT) BT.list(l=>{ $('btList').innerHTML = l.length? l.map(d=>`<div class="item"><span>${d.name||'(sin nombre)'}<small>${d.address}</small></span><button class="btn go" onclick="connectObd('${d.address}')">Conectar</button></div>`).join('') : 'Emparejá primero el ELM327 en Ajustes de Android (PIN 1234 o 0000).'; }, ()=>{ $('btList').textContent='Error leyendo Bluetooth'; });
+  if(BT) BT.list(l=>{ $('btList').innerHTML = l.length? l.map(d=>`<div class="item"><span>${d.name||'(sin nombre)'}<small>${d.address}</small></span><button class="btn go tap" onclick="connectObd('${d.address}')">Conectar</button></div>`).join('') : 'Emparejá primero el ELM327 en Ajustes de Android (PIN 1234 o 0000).'; }, ()=>{ $('btList').textContent='Error leyendo Bluetooth'; });
 }
-function setLook(k,v){ S[k]=v; save(); applyLook(); openSettings(); }
+function setLook(k,v){ S[k]=v; save(); applyLook(); renderCar(); renderObd(); openSettings(); }
 function editGreet(){ const g=prompt('Saludo (dejalo vacío para ocultarlo)', S.greet||''); if(g!==null) setLook('greet', g.trim()); }
 function openSettings(){
-  openModal(`<h2>Ajustes</h2>`+
-    `<div class="item"><span>Saludo<small>${S.greet||'(oculto)'}</small></span><button class="btn" onclick="editGreet()">Cambiar</button></div>`+
-    `<div class="item"><span>Color de fondo<small>${(BGS.find(b=>b[0]===S.bg)||BGS[0])[1]}</small></span><span class="swatches">${BGS.map(b=>`<button class="sw ${S.bg===b[0]?'on':''}" style="--s:${b[0]}" onclick="setLook('bg','${b[0]}')" aria-label="${b[1]}"></button>`).join('')}</span></div>`+
-    `<div class="item"><span>Lado del volante<small>${S.side==='lhd'?'Izquierda: apps a la izquierda':'Derecha (Passo japonés): apps a la derecha, cerca tuyo'}</small></span><button class="btn" onclick="setLook('side','${S.side==='lhd'?'rhd':'lhd'}')">Invertir lados</button></div>`+
-    `<div class="item"><span>Íconos de apps<small>${S.mono?'Monocromo: integrados al tema oscuro':'Color: los originales de cada app'}</small></span><button class="btn ${S.mono?'':'go'}" onclick="S.mono=!S.mono;save();renderApps();openSettings()">${S.mono?'Pasar a color':'Pasar a monocromo'}</button></div>`+
-    S.apps.map((a,i)=>`<div class="item"><span>${a.n}<small>${a.pkg}${realIcons[a.pkg]?'':' · no instalada o sin detectar'}</small></span><button class="btn" onclick="editApp(${i})">Cambiar paquete</button></div>`).join('')+
-    `<div class="item"><span>Adaptador OBD guardado<small>${S.obdAddr||'ninguno'}</small></span>${S.obdAddr?`<button class="btn go" onclick="connectObd(S.obdAddr)">Reconectar</button>`:''}</div>`);
+  const sw=(list,key)=>`<span class="swatches">${list.map(b=>`<button class="sw tap ${S[key]===b[0]?'on':''}" style="--s:${b[0]}" onclick="setLook('${key}','${b[0]}')" aria-label="${b[1]}"></button>`).join('')}</span>`;
+  const appRow=(k)=>(a,i)=>`<div class="item"><span>${a.n}<small>${a.pkg}${realIcons[a.pkg]?'':' · no instalada o sin detectar'}</small></span><button class="btn tap" onclick="editApp('${k}',${i})">Cambiar</button></div>`;
+  openModal(`<h2>Ajustes del launcher</h2>`+
+    `<div class="item"><span>Foto del auto<small>${carPhoto?'Usando tu foto':'Usando la ilustración'}</small></span><span class="row"><button class="btn go tap" onclick="pickCarPhoto()">Elegir foto</button>${carPhoto?`<button class="btn tap" onclick="clearCarPhoto()">Volver al dibujo</button>`:''}</span></div>`+
+    `<div class="item"><span>Color del auto<small>${S.carColor}</small></span><span class="swatches">${Object.keys(CAR_COLORS).map(k=>`<button class="sw tap ${S.carColor===k?'on':''}" style="--s:${CAR_COLORS[k][1]}" onclick="setLook('carColor','${k}')" aria-label="${k}"></button>`).join('')}</span></div>`+
+    `<div class="item"><span>Saludo<small>${S.greet||'(oculto)'}</small></span><button class="btn tap" onclick="editGreet()">Cambiar</button></div>`+
+    `<div class="item"><span>Color de acento<small>${(ACCS.find(b=>b[0]===S.acc)||ACCS[0])[1]}</small></span>${sw(ACCS,'acc')}</div>`+
+    `<div class="item"><span>Fondo<small>${(BGS.find(b=>b[0]===S.bg)||BGS[0])[1]}</small></span>${sw(BGS,'bg')}</div>`+
+    `<div class="item"><span>Lado del volante<small>${S.side==='lhd'?'Izquierda: apps a la izquierda':'Derecha (Passo japonés): apps cerca tuyo'}</small></span><button class="btn tap" onclick="setLook('side','${S.side==='lhd'?'rhd':'lhd'}')">Invertir</button></div>`+
+    `<div class="item"><span>Íconos de apps<small>${S.mono?'Monocromo':'Color original'}</small></span><button class="btn tap" onclick="S.mono=!S.mono;save();renderApps();openSettings()">${S.mono?'Pasar a color':'Pasar a monocromo'}</button></div>`+
+    `<h2 style="margin-top:1.6vh">Apps de la derecha</h2>`+ S.apps.map(appRow('apps')).join('')+
+    `<h2 style="margin-top:1.6vh">Dock de abajo</h2>`+ S.dock.map(appRow('dock')).join('')+
+    `<h2 style="margin-top:1.6vh">Más apps</h2>`+ S.drawer.map(appRow('drawer')).join('')+
+    `<div class="item"><span>Adaptador OBD guardado<small>${S.obdAddr||'ninguno'}</small></span>${S.obdAddr?`<button class="btn go tap" onclick="connectObd(S.obdAddr)">Reconectar</button>`:''}</div>`);
 }
-function editApp(i){ const p=prompt('Nombre de paquete Android', S.apps[i].pkg); if(p){ S.apps[i].pkg=p.trim(); save(); renderApps(); loadIcons().then(openSettings); } }
+function editApp(k,i){
+  const a=S[k][i];
+  const n=prompt('Nombre del botón', a.n); if(n===null) return;
+  const p=prompt('Paquete Android (ej. com.spotify.music)', a.pkg); if(p===null) return;
+  a.n=n.trim()||a.n; a.pkg=p.trim()||a.pkg; save(); renderApps(); loadIcons().then(openSettings); openSettings();
+}
 
 /* ================= Noche ================= */
-let night=false; function toggleNight(){ night=!night; $('night').style.opacity=night?.65:0; }
+let night=false; function toggleNight(){ night=!night; $('night').style.opacity=night?.6:0; }
 
-/* ================= Auto-reconexión OBD al arrancar ================= */
+/* ================= Arranque ================= */
+applyLook(); renderCar(); renderApps(); loadIcons(); renderShift(); renderObd();
 document.addEventListener('deviceready',()=>{ BT = window.bluetoothSerial; loadIcons(); if(S.obdAddr && BT) connectObd(S.obdAddr); });
-// Al volver al launcher (ej. después de instalar una app) refrescar íconos
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) loadIcons(); });
-renderObd(); refreshAlerts();
 </script>
 </body>
 </html>

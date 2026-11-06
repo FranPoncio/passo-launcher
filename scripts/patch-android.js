@@ -79,6 +79,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(AppIconsPlugin.class);
         registerPlugin(MediaPlugin.class);
+        registerPlugin(VoicePlugin.class);
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         hideSystemBars();
@@ -302,4 +303,90 @@ public class MediaPlugin extends Plugin {
 }
 `);
 
-console.log('Android parcheado: HOME + horizontal + permisos + MainActivity + AppIcons + Media');
+// 8) Voz: dictado (reconocimiento de Google) y lectura en voz alta (TTS) para el asistente
+fs.writeFileSync(path.join(javaDir, 'VoicePlugin.java'), `package com.fran.passo;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.speech.RecognizerIntent;
+import android.speech.tts.TextToSpeech;
+import androidx.activity.result.ActivityResult;
+import com.getcapacitor.JSObject;
+import com.getcapacitor.Plugin;
+import com.getcapacitor.PluginCall;
+import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.ActivityCallback;
+import com.getcapacitor.annotation.CapacitorPlugin;
+import java.util.ArrayList;
+import java.util.Locale;
+
+@CapacitorPlugin(name = "Voice")
+public class VoicePlugin extends Plugin implements TextToSpeech.OnInitListener {
+
+    private TextToSpeech tts;
+    private boolean ttsReady = false;
+
+    @Override
+    public void load() {
+        tts = new TextToSpeech(getContext(), this);
+    }
+
+    @Override
+    public void onInit(int status) {
+        ttsReady = status == TextToSpeech.SUCCESS;
+    }
+
+    private Locale locale(String tag) {
+        String[] p = tag.split("-");
+        return p.length > 1 ? new Locale(p[0], p[1]) : new Locale(p[0]);
+    }
+
+    @PluginMethod
+    public void listen(PluginCall call) {
+        Intent i = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE, call.getString("lang", "es-AR"));
+        i.putExtra(RecognizerIntent.EXTRA_PROMPT, call.getString("prompt", "Hablá"));
+        i.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
+        try {
+            startActivityForResult(call, i, "onSpeech");
+        } catch (Exception e) {
+            call.reject("No hay reconocimiento de voz en esta tablet (instalá la app de Google)");
+        }
+    }
+
+    @ActivityCallback
+    private void onSpeech(PluginCall call, ActivityResult result) {
+        if (call == null) return;
+        JSObject o = new JSObject();
+        String text = "";
+        if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+            ArrayList<String> r = result.getData().getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            if (r != null && !r.isEmpty()) text = r.get(0);
+        }
+        o.put("text", text);
+        call.resolve(o);
+    }
+
+    @PluginMethod
+    public void speak(PluginCall call) {
+        if (!ttsReady || tts == null) { call.reject("Lectura en voz alta no disponible"); return; }
+        tts.setLanguage(locale(call.getString("lang", "es-AR")));
+        tts.speak(call.getString("text", ""), TextToSpeech.QUEUE_FLUSH, null, "passo");
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void stop(PluginCall call) {
+        if (tts != null) tts.stop();
+        call.resolve();
+    }
+
+    @Override
+    protected void handleOnDestroy() {
+        if (tts != null) tts.shutdown();
+    }
+}
+`);
+
+console.log('Android parcheado: HOME + horizontal + permisos + MainActivity + AppIcons + Media + Voice');

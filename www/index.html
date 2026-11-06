@@ -49,6 +49,21 @@
   .hicon svg { width:3vh; height:3vh; }
   .hicon.on { color:var(--amb); }
   #clock { font-size:5.2vh; font-weight:800; }
+  .wx { display:none; align-items:center; gap:.9vh; height:6.4vh; padding:0 1.2vh; font-size:2.6vh; font-weight:800; color:#e4e4e7; }
+  .wx.on { display:flex; }
+  .wx svg { width:3.2vh; height:3.2vh; color:var(--amb); }
+  /* Asistente */
+  .chat { display:flex; flex-direction:column; gap:1.4vh; margin-bottom:2vh; }
+  .msg { max-width:80%; padding:1.8vh 2.4vh; border-radius:2.6vh; font-size:2.6vh; line-height:1.35; font-weight:600; }
+  .msg.u { align-self:flex-end; background:var(--soft2); color:#e4e4e7; }
+  .msg.a { align-self:flex-start; background:color-mix(in srgb, var(--acc) 18%, transparent); color:#fff; }
+  .msg.w { align-self:flex-start; color:var(--mut2); }
+  .bigmic { width:14vh; height:14vh; border-radius:50%; background:var(--acc); color:#000; display:flex; align-items:center; justify-content:center; margin:0 auto; }
+  .bigmic svg { width:6vh; height:6vh; }
+  .hint { text-align:center; color:var(--mut); font-size:2.1vh; font-weight:700; margin-top:1.4vh; }
+  .chips { display:flex; gap:1.2vh; flex-wrap:wrap; justify-content:center; margin-top:2vh; }
+  .chips button { padding:1.4vh 2.4vh; border-radius:99px; background:var(--soft); font-size:2.1vh; font-weight:700; color:#e4e4e7; }
+  input.wide { width:46vh; }
 
   /* ---------- Centro de la pantalla ---------- */
   main { display:grid; grid-template-columns:23% 1fr 21%; gap:2.4vh; min-height:0; }
@@ -77,7 +92,7 @@
 
   /* Centro: mapa grande + música grande */
   .center { display:flex; flex-direction:column; gap:1.4vh; min-height:0; }
-  .mapcard { position:relative; flex:1; min-height:0; border-radius:3.2vh; overflow:hidden; background:#0c0e12; }
+  .mapcard { position:relative; isolation:isolate; z-index:0; flex:1; min-height:0; border-radius:3.2vh; overflow:hidden; background:#0c0e12; }
   #map { position:absolute; inset:0; background:#0c0e12; }
   .leaflet-tile-pane { filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.88) saturate(.55); }
   .leaflet-control-attribution { background:rgba(0,0,0,.55) !important; color:#71717a !important; font-size:1.3vh !important; }
@@ -137,7 +152,7 @@
   .allapps svg { width:3.4vh; height:3.4vh; }
 
   /* ---------- Paneles ---------- */
-  #modal { position:fixed; inset:0; background:rgba(0,0,0,.97); display:none; flex-direction:column; padding:4vh 7vh; z-index:30; overflow:auto; }
+  #modal { position:fixed; inset:0; background:rgba(0,0,0,.97); display:none; flex-direction:column; padding:4vh 7vh; z-index:2000; overflow:auto; }
   #modal.on { display:flex; animation:up .22s ease-out; }
   @keyframes up { from { opacity:0; transform:translateY(2vh); } to { opacity:1; transform:none; } }
   #modal h2 { font-size:3.6vh; font-weight:900; margin-bottom:2.4vh; }
@@ -169,12 +184,12 @@
   .dtc b { font-size:2.8vh; font-weight:900; color:var(--amb); min-width:12vh; }
   .dtc span { font-weight:600; color:#d4d4d8; font-size:2.2vh; }
 
-  #toast { position:fixed; top:2vh; left:50%; transform:translate(-50%,-1vh); background:#27272a; padding:1.6vh 3vh; border-radius:99px; font-size:2.2vh; font-weight:800; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; z-index:60; display:flex; align-items:center; gap:1.4vh; white-space:nowrap; }
+  #toast { position:fixed; top:2vh; left:50%; transform:translate(-50%,-1vh); background:#27272a; padding:1.6vh 3vh; border-radius:99px; font-size:2.2vh; font-weight:800; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; z-index:2100; display:flex; align-items:center; gap:1.4vh; white-space:nowrap; }
   #toast.on { opacity:1; transform:translate(-50%,0); }
   #toast i { width:1.4vh; height:1.4vh; border-radius:50%; background:var(--ok); }
   #toast.warn i { background:var(--amb); } #toast.err i { background:var(--bad); }
-  #night { position:fixed; inset:0; background:#000; opacity:0; pointer-events:none; transition:opacity 1.2s; z-index:40; }
-  #danger { position:fixed; inset:0; pointer-events:none; z-index:20; display:none; background:radial-gradient(circle,transparent 55%,rgba(239,68,68,.45) 100%); animation:pulse 1.2s infinite; }
+  #night { position:fixed; inset:0; background:#000; opacity:0; pointer-events:none; transition:opacity 1.2s; z-index:3000; }
+  #danger { position:fixed; inset:0; pointer-events:none; z-index:1500; display:none; background:radial-gradient(circle,transparent 55%,rgba(239,68,68,.45) 100%); animation:pulse 1.2s infinite; }
   @keyframes pulse { 0%,100%{opacity:0} 50%{opacity:1} }
 </style>
 </head>
@@ -188,7 +203,8 @@
     <button id="badge" class="tap sim" onclick="openObd()"><i></i><span id="badgeTxt">Sin OBD</span></button>
   </div>
   <div class="hr">
-    <button class="tap pill hbtn" onclick="saveParking()" data-ic="pin"><span id="parkLbl">Guardar parking</span></button>
+    <button class="tap pill hbtn" onclick="parkingTap()" data-ic="pin"><span id="parkLbl">Parking</span></button>
+ <button class="tap wx" id="wx" onclick="openWeather()"><span id="wxIco"></span><span id="wxT" class="mono"></span></button>
     <button class="tap hicon" id="nightBtn" onclick="cycleNight()" data-ic="moon" aria-label="Modo noche"></button>
     <div id="clock" class="mono">--:--</div>
   </div>
@@ -226,8 +242,8 @@
     <div class="stats">
       <button class="stat tap" onclick="openMaint()"><small>Odómetro</small><b id="stOdo" class="mono">--</b></button>
       <button class="stat tap" onclick="openMaint()"><small>Service</small><b id="stSvc" class="mono">--</b></button>
-      <button class="stat tap" onclick="openMaint()"><small>WoF</small><b id="stWof" class="mono">--</b></button>
-      <button class="stat tap" onclick="openMaint()"><small>Rego</small><b id="stRego" class="mono">--</b></button>
+      <button class="stat tap" onclick="openMaint()"><small id="stVtoL">Vence</small><b id="stVto" class="mono">--</b></button>
+      <button class="stat tap" onclick="openTrips()"><small>Viaje</small><b id="stTrip" class="mono">--</b></button>
     </div>
   </section>
 
@@ -275,7 +291,14 @@ const ICONS = {
   cast:'<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><path d="m10 8.5 4.5 2.5-4.5 2.5z"/>',
   store:'<path d="M5 8h14l-1.2 11.2A2 2 0 0 1 15.8 21H8.2a2 2 0 0 1-2-1.8z"/><path d="M9 8a3 3 0 0 1 6 0"/>',
   globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
-  video:'<rect x="3" y="6" width="13" height="12" rx="2.5"/><path d="m16 10 5-3v10l-5-3"/>'
+  video:'<rect x="3" y="6" width="13" height="12" rx="2.5"/><path d="m16 10 5-3v10l-5-3"/>',
+  mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
+  cloud:'<path d="M7 18.5h10a4 4 0 0 0 .6-8 6 6 0 0 0-11.5 1.6A3.2 3.2 0 0 0 7 18.5z"/>',
+  rain:'<path d="M7 15h10a4 4 0 0 0 .6-8 6 6 0 0 0-11.5 1.6A3.2 3.2 0 0 0 7 15z"/><path d="M8 18l-1 2.5M12 18l-1 2.5M16 18l-1 2.5"/>',
+  storm:'<path d="M7 14.5h10a4 4 0 0 0 .6-8 6 6 0 0 0-11.5 1.6A3.2 3.2 0 0 0 7 14.5z"/><path d="m12.5 15.5-2 3.5h3l-2 3.5"/>',
+  fog:'<path d="M4 9h16M3 13h18M5 17h14"/>',
+  snow:'<path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"/>'
 };
 const FILLED = {
   prev:'<path d="M6 5h2.4v14H6zM20 5.6v12.8L9.6 12z"/>',
@@ -303,6 +326,9 @@ const DEF = {
   dates: [ { name:'WOF', due:'2027-07-01' }, { name:'Rego', due:'2027-06-27' } ],
   fuel: [], parking: null, shift: null, obdAddr: '',
   mono: false, greet: 'Hola, Fran', bg: '#000000', acc: '#10b981', side: 'rhd', night: 'auto',
+  lastPos: null, cur: '$', fuelPrice: 3.0, consEst: 6.5, autoCarplay: false,
+  trips: [], trip: null,
+  ai: { prov:'gemini', keys:{ gemini:'', openai:'', anthropic:'' }, models:{ gemini:'gemini-flash-latest', openai:'', anthropic:'claude-haiku-5-5' }, voice:true, lang:'es-AR' },
   apps: [
     { n:'Maps',    ic:'map',   c:'#34d399', pkg:'com.google.android.apps.maps' },
     { n:'Waze',    ic:'nav',   c:'#38bdf8', pkg:'com.waze' },
@@ -315,9 +341,10 @@ const DEF = {
     { n:'CarPlay',  ic:'cast',  c:'#fff',    pkg:'com.zjinnova.zlink', main:true },
     { n:'Teléfono', ic:'phone', c:'#34d399', pkg:'com.syu.bt' },
     { n:'Radio',    ic:'radio', c:'#fbbf24', pkg:'com.syu.radio' },
-    { n:'Android Auto', ic:'car', c:'#67e8f9', pkg:'com.google.android.projection.gearhead' }
+    { n:'Asistente', ic:'mic', c:'#c4b5fd', pkg:'', special:'ai' }
   ],
   drawer: [
+    { n:'Android Auto', ic:'car', c:'#67e8f9', pkg:'com.google.android.projection.gearhead' },
     { n:'Claude',     ic:'spark', c:'#fb923c', pkg:'com.anthropic.claude' },
     { n:'ChatGPT',    ic:'chat',  c:'#34d399', pkg:'com.openai.chatgpt' },
     { n:'Gemini',     ic:'star',  c:'#38bdf8', pkg:'com.google.android.apps.bard' },
@@ -333,6 +360,7 @@ let S;
 try { S = Object.assign({}, DEF, JSON.parse(localStorage.getItem('passo')||'{}')); } catch(e){ S = {...DEF}; }
 ['dock','drawer','apps','maint','dates'].forEach(k=>{ if(!Array.isArray(S[k])) S[k]=DEF[k]; });
 DEF.maint.forEach(d=>{ if(!S.maint.some(m=>m.name===d.name)) S.maint.push({...d}); });
+S.ai = Object.assign({}, DEF.ai, S.ai||{}); S.ai.keys = Object.assign({}, DEF.ai.keys, S.ai.keys||{}); S.ai.models = Object.assign({}, DEF.ai.models, S.ai.models||{});
 const save = () => { try{ localStorage.setItem('passo', JSON.stringify(S)); }catch(e){} };
 let carPhoto = null; try { carPhoto = localStorage.getItem('passoCarPhoto'); } catch(e){}
 
@@ -379,7 +407,7 @@ try { realIcons = JSON.parse(localStorage.getItem('passoIcons')||'{}'); } catch(
 async function loadIcons(){
   const P = plugin('AppIcons'); if (!P) return;
   try {
-    const r = await P.get({ packages: [...S.apps, ...S.dock, ...S.drawer].map(a=>a.pkg) });
+    const r = await P.get({ packages: [...S.apps, ...S.dock, ...S.drawer].map(a=>a.pkg).filter(Boolean) });
     realIcons = r.icons || {};
     try { localStorage.setItem('passoIcons', JSON.stringify(realIcons)); } catch(e){}
     renderApps();
@@ -390,14 +418,14 @@ function renderApps(){
   document.body.classList.toggle('mono-ic', !!S.mono);
   $('apps').innerHTML = S.apps.map(a=>`<button class="app tap" onclick="openApp('${a.pkg}')"><span class="ico">${icoHTML(a)}</span>${a.n}</button>`).join('');
   const half = Math.ceil(S.dock.length/2);
-  const dk = a => `<button class="dk tap ${a.main?'main':''}" style="--c:${a.c}" onclick="openApp('${a.pkg}')">${realIcons[a.pkg]?`<img src="${realIcons[a.pkg]}" alt="">`:svg(a.ic)}${a.n}</button>`;
+  const dk = a => `<button class="dk tap ${a.main?'main':''}" style="--c:${a.c}" onclick="${a.special==='ai'?'askAI()':`openApp('${a.pkg}')`}">${realIcons[a.pkg]?`<img src="${realIcons[a.pkg]}" alt="">`:svg(a.ic)}${a.n}</button>`;
   $('dock').innerHTML = S.dock.slice(0,half).map(dk).join('') +
     `<button class="allapps tap" onclick="openDrawer()" aria-label="Todas las apps">${svg('grid')}</button>` +
     S.dock.slice(half).map(dk).join('');
 }
 function openDrawer(){
   openModal(`<h2>Apps</h2><div class="drawer">`+
-    [...S.apps, ...S.dock, ...S.drawer].map(a=>`<button class="dr tap" onclick="closeModal();openApp('${a.pkg}')">${icoHTML(a)}${a.n}</button>`).join('')+
+    [...S.apps, ...S.dock, ...S.drawer].map(a=>`<button class="dr tap" onclick="${a.special==='ai'?'askAI()':`closeModal();openApp('${a.pkg}')`}">${icoHTML(a)}${a.n}</button>`).join('')+
     `<button class="dr tap" onclick="closeModal();openAndroid()"><span class="fb" style="--c:#a1a1aa">${svg('sliders')}</span>Ajustes Android</button></div>`);
 }
 document.querySelectorAll('[data-ic]').forEach(b=>b.insertAdjacentHTML('afterbegin', svg(b.dataset.ic)));
@@ -488,8 +516,9 @@ function sunTimes(date, lat, lon){
   return { rise: toDate(Jt - w/360), set: toDate(Jt + w/360) };
 }
 function isDark(){
-  const lat = gpsLast ? gpsLast.lat : -36.80, lon = gpsLast ? gpsLast.lon : 175.10; // por defecto, Waiheke
-  const now = new Date(), t = sunTimes(now, lat, lon);
+  const pos = gpsLast || S.lastPos, now = new Date();
+  if (!pos) { const h = now.getHours(); return h >= 19 || h < 7; } // sin GPS todavía: por horario
+  const t = sunTimes(now, pos.lat, pos.lon);
   return now < new Date(t.rise.getTime()+20*6e4) || now > new Date(t.set.getTime()-10*6e4);
 }
 function applyNight(){
@@ -505,10 +534,10 @@ setInterval(applyNight, 60000);
 
 /* ================= Mapa (OpenStreetMap, necesita internet) ================= */
 let map=null, meMarker=null, parkMarker=null, follow=true, tilesOk=false;
-const HOME=[-36.80,175.10]; // Waiheke, hasta que llegue el GPS
+const HOME = S.lastPos ? [S.lastPos.lat, S.lastPos.lon] : [10, 0]; // última posición conocida
 function initMap(){
   if(!window.L){ $('mapMsg').textContent='Mapa no disponible'; return; }
-  map = L.map('map',{ zoomControl:false, attributionControl:true, zoomSnap:.5 }).setView(HOME,14);
+  map = L.map('map',{ zoomControl:false, attributionControl:true, zoomSnap:.5 }).setView(HOME, S.lastPos?15:2);
   map.attributionControl.setPrefix(false);
   const tl = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{ maxZoom:19, attribution:'© OpenStreetMap' }).addTo(map);
   tl.on('tileload',()=>{ tilesOk=true; $('mapMsg').style.display='none'; });
@@ -544,10 +573,11 @@ if (navigator.geolocation) {
     speedKmh = c.speed!=null && !isNaN(c.speed) ? Math.max(0,c.speed*3.6) : speedKmh;
     if (c.accuracy<=30) {
       if (gpsLast) { const d=hav(gpsLast.lat,gpsLast.lon,c.latitude,c.longitude); if (d>0.005 && d<1) { S.odo+=d; } }
-      gpsLast={lat:c.latitude,lon:c.longitude};
+      gpsLast={lat:c.latitude,lon:c.longitude}; S.lastPos=gpsLast;
       updateMap(c.latitude,c.longitude);
+      if (!wxAt || Date.now()-wxAt > 20*6e4) loadWeather();
     }
-    showSpeed();
+    showSpeed(); tripTick();
   }, ()=>{}, { enableHighAccuracy:true, maximumAge:1000, timeout:10000 });
 }
 setInterval(save,15000);
@@ -649,7 +679,7 @@ async function scanDtc(){
 }
 function renderDtc(){
   const s=S.lastScan, box=$('dtcBox'); if(!box) return; if(!s){ box.innerHTML=''; return; }
-  const when = new Date(s.t).toLocaleString();
+  const when = new Date(s.t).toLocaleString('es-AR');
   box.innerHTML = s.codes.length
     ? s.codes.map(c=>`<div class="dtc"><b>${c}</b><span>${dtcDesc(c)}</span></div>`).join('') +
       `<div class="item"><span>Borrar códigos<small>Apaga el check engine, pero no arregla la causa: si la falla sigue, el código vuelve.</small></span><button class="btn stop tap" onclick="clearDtc()">Borrar</button></div>` +
@@ -720,9 +750,11 @@ function refreshAlerts(hot,lowV){
   const pend = S.maint.filter(m=>m.everyKm-(S.odo-m.lastKm)<=0).length;
   const next = S.maint.map(m=>m.everyKm-(S.odo-m.lastKm)).sort((x,y)=>x-y)[0];
   const sv=$('stSvc'); sv.textContent = pend ? pend+' a hacer' : fmtKm(next)+' km'; sv.className='mono '+(pend?'warn':next<500?'warn':'good');
-  [['stWof',0],['stRego',1]].forEach(([id,i])=>{ const d=daysTo(S.dates[i]&&S.dates[i].due), el=$(id);
-    el.textContent = d==null ? 'Cargar' : d<0 ? 'Vencido' : d+' días';
-    el.className = 'mono '+(d==null?'':d<0?'bad':d<=30?'warn':'good'); });
+  const ds = S.dates.filter(d=>d.due).map(d=>({n:d.name, d:daysTo(d.due)})).sort((x,y)=>x.d-y.d)[0];
+  $('stVtoL').textContent = ds ? ds.n : 'Vence';
+  const el=$('stVto'); el.textContent = !ds ? 'Cargar' : ds.d<0 ? 'Vencido' : ds.d+' días';
+  el.className = 'mono '+(!ds?'':ds.d<0?'bad':ds.d<=30?'warn':'good');
+  renderTripStat();
 }
 
 /* ================= Turno (modo trabajo) ================= */
@@ -777,11 +809,189 @@ function renderShift(){
 }
 setInterval(renderShift,5000);
 
-/* ================= Parking ================= */
+/* ================= Parking: guardar y volver al auto ================= */
 function saveParking(){
+  closeModal();
   if(!gpsLast){ toast('Sin señal GPS todavía','warn'); return; }
-  S.parking={lat:gpsLast.lat,lon:gpsLast.lon,t:Date.now()}; save(); drawParking(); $('parkLbl').textContent='Guardado'; setTimeout(()=>$('parkLbl').textContent='Guardar parking',2500);
+  S.parking={lat:gpsLast.lat,lon:gpsLast.lon,t:Date.now()}; save(); drawParking(); $('parkLbl').textContent='Guardado'; setTimeout(()=>$('parkLbl').textContent='Parking',2500);
   toast('Parking guardado');
+}
+function openUrl(url){
+  const AL = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AppLauncher;
+  if (AL) AL.openUrl({ url }).catch(()=>toast('No pude abrir el enlace','warn')); else window.open(url,'_blank');
+}
+function goToCar(){ closeModal(); if(!S.parking) return; openUrl(`https://www.google.com/maps/dir/?api=1&destination=${S.parking.lat},${S.parking.lon}&travelmode=walking`); }
+function parkingTap(){
+  if(!S.parking){ saveParking(); return; }
+  const far = gpsLast ? hav(gpsLast.lat,gpsLast.lon,S.parking.lat,S.parking.lon) : null;
+  const when = new Date(S.parking.t).toLocaleString('es-AR', { hourCycle:'h23',  weekday:'short', hour:'2-digit', minute:'2-digit' });
+  openModal(`<h2>Parking <small>guardado ${when}${far!=null?' · a '+(far<1?Math.round(far*1000)+' m':far.toFixed(1)+' km'):''}</small></h2>
+    <div class="row"><button class="btn go tap" onclick="goToCar()">Volver al auto (a pie)</button><button class="btn tap" onclick="saveParking()">Guardar acá</button></div>`);
+}
+
+/* ================= Viajes: km, tiempo y costo ================= */
+const curFmt = n => (S.cur||'$') + (n>=100 ? Math.round(n) : n.toFixed(2));
+function avgCons(){
+  const full=S.fuel.filter(x=>x.full);
+  if(full.length>=2){ const km=full[full.length-1].odo-full[0].odo, L=full.slice(1).reduce((s,x)=>s+x.liters,0); if(km>50) return L/km*100; }
+  return S.consEst||6.5;
+}
+const tripCost = km => km*avgCons()/100*(S.fuelPrice||0);
+function tripTick(){
+  const now=Date.now();
+  if (speedKmh>5) {
+    if(!S.trip) S.trip={ start:now, km0:S.odo, last:now };
+    else S.trip.last=now;
+  }
+  renderTripStat();
+}
+function closeTripIfIdle(){
+  if(!S.trip) return;
+  if(Date.now()-S.trip.last > 5*6e4){
+    const km=S.odo-S.trip.km0;
+    if(km>0.2) S.trips.push({ start:S.trip.start, end:S.trip.last, km });
+    if(S.trips.length>300) S.trips=S.trips.slice(-300);
+    S.trip=null; save(); renderTripStat();
+  }
+}
+setInterval(closeTripIfIdle, 30000);
+const durFmt = ms => { const m=Math.round(ms/6e4); return m<60 ? m+' min' : Math.floor(m/60)+' h '+(m%60)+' min'; };
+function renderTripStat(){
+  const el=$('stTrip'); if(!el) return;
+  if(S.trip){ el.textContent=(S.odo-S.trip.km0).toFixed(1)+' km'; el.className='mono good'; }
+  else { const l=S.trips[S.trips.length-1]; el.textContent = l ? l.km.toFixed(1)+' km' : '--'; el.className='mono'; }
+}
+function openTrips(){
+  const now=new Date(), m0=new Date(now.getFullYear(),now.getMonth(),1).getTime(), d0=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
+  const sum=(from)=>{ const t=S.trips.filter(x=>x.start>=from); return { km:t.reduce((a,x)=>a+x.km,0), ms:t.reduce((a,x)=>a+(x.end-x.start),0), n:t.length }; };
+  const today=sum(d0), month=sum(m0);
+  const cur=S.trip ? { km:S.odo-S.trip.km0, ms:Date.now()-S.trip.start } : null;
+  openModal(`<h2>Viajes <small>consumo usado: ${avgCons().toFixed(1)} L/100 · nafta ${curFmt(S.fuelPrice||0)}/L</small></h2>
+    <div class="grid4" style="margin-bottom:1.6vh">
+      <div class="big"><b class="mono">${cur?cur.km.toFixed(1):'--'}</b><small>Km viaje actual</small></div>
+      <div class="big"><b class="mono">${cur?durFmt(cur.ms):'--'}</b><small>Tiempo</small></div>
+      <div class="big"><b class="mono">${today.km.toFixed(1)}</b><small>Km hoy</small></div>
+      <div class="big"><b class="mono">${curFmt(tripCost(today.km))}</b><small>Nafta hoy</small></div>
+      <div class="big"><b class="mono">${Math.round(month.km)}</b><small>Km del mes</small></div>
+      <div class="big"><b class="mono">${durFmt(month.ms)}</b><small>Manejando</small></div>
+      <div class="big"><b class="mono">${month.n}</b><small>Viajes</small></div>
+      <div class="big"><b class="mono">${curFmt(tripCost(month.km))}</b><small>Nafta del mes</small></div>
+    </div>`+
+    S.trips.slice(-8).reverse().map(x=>`<div class="item"><span>${new Date(x.start).toLocaleString('es-AR', { hourCycle:'h23', weekday:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}<small>${durFmt(x.end-x.start)} · ${curFmt(tripCost(x.km))} de nafta</small></span><b class="mono">${x.km.toFixed(1)} km</b></div>`).join('')+
+    `<div class="hint">Un viaje empieza al moverte y termina tras 5 minutos detenido. El precio de la nafta se cambia en Ajustes.</div>`);
+}
+
+/* ================= Clima (Open-Meteo, gratis y sin clave) ================= */
+let wxAt=0, wx=null;
+const WX = c => c===0?['sun','Despejado']: c<=2?['sun','Algo nublado']: c===3?['cloud','Nublado']: c<=48?['fog','Niebla']: c<=67||(c>=80&&c<=82)?['rain','Lluvia']: c<=77||c===85||c===86?['snow','Nieve']: ['storm','Tormenta'];
+async function loadWeather(){
+  const pos=gpsLast||S.lastPos; if(!pos) return; wxAt=Date.now();
+  try {
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.lat.toFixed(3)}&longitude=${pos.lon.toFixed(3)}&current=temperature_2m,weather_code,is_day,wind_speed_10m&hourly=temperature_2m,precipitation_probability,weather_code&forecast_hours=8&timezone=auto`);
+    if(!r.ok) return; wx=await r.json(); renderWeather();
+  } catch(e) {}
+}
+function renderWeather(){
+  if(!wx||!wx.current) return;
+  const c=wx.current, k=WX(c.weather_code), ic = (k[0]==='sun' && !c.is_day) ? 'moon' : k[0];
+  $('wxIco').innerHTML=svg(ic); $('wxT').textContent=Math.round(c.temperature_2m)+'°'; $('wx').classList.add('on');
+}
+function openWeather(){
+  if(!wx) return;
+  const c=wx.current, h=wx.hourly;
+  openModal(`<h2>Clima <small>${WX(c.weather_code)[1]} · viento ${Math.round(c.wind_speed_10m)} km/h</small></h2><div class="grid4">`+
+    h.time.slice(0,8).map((t,i)=>`<div class="big"><b class="mono">${Math.round(h.temperature_2m[i])}°</b><small>${t.slice(11,16)} · lluvia ${h.precipitation_probability[i]??0}%</small></div>`).join('')+`</div>`);
+}
+setInterval(()=>{ if(gpsLast||S.lastPos) loadWeather(); }, 20*6e4);
+
+/* ================= Asistente de voz con IA (Gemini, ChatGPT o Claude) ================= */
+const AI_NAMES = { gemini:'Gemini', openai:'ChatGPT', anthropic:'Claude' };
+let aiHist = [], aiBusy = false;
+function carContext(){
+  const maint = S.maint.map(m=>{ const left=Math.round(m.everyKm-(S.odo-m.lastKm)); return `- ${m.name}: cada ${m.everyKm} km; ${left>0?'faltan '+left+' km':'pendiente'}`; }).join('\n');
+  const dates = S.dates.map(d=>`- ${d.name}: ${d.due?('vence '+d.due+' ('+daysTo(d.due)+' días)'):'sin fecha'}`).join('\n');
+  const o = obd.ok ? `Motor (OBD en vivo${obd.sim?', DEMO':''}): ${obd.rpm!=null?Math.round(obd.rpm)+' rpm, ':''}${obd.temp!=null?'agua '+Math.round(obd.temp)+'°C, ':''}${obd.volt!=null?'batería '+obd.volt.toFixed(1)+' V, ':''}check engine ${obd.mil?'ENCENDIDO':'apagado'}.` : 'Motor: sin adaptador OBD conectado.';
+  const dtc = S.lastScan ? `Último escaneo de fallas (${new Date(S.lastScan.t).toLocaleDateString('es-AR')}): ${S.lastScan.codes.length?S.lastScan.codes.map(c=>c+' '+dtcDesc(c)).join('; '):'sin códigos'}.` : '';
+  const now=new Date(), m0=new Date(now.getFullYear(),now.getMonth(),1).getTime();
+  const mk=S.trips.filter(x=>x.start>=m0).reduce((a,x)=>a+x.km,0);
+  return `Auto: Toyota Passo 2004, motor 1.3 K3-VE, caja automática de 4 marchas, distribución por cadena.
+Odómetro: ${Math.round(S.odo)} km. Velocidad actual: ${Math.round(speedKmh)} km/h.
+Service:\n${maint}
+Vencimientos:\n${dates}
+${o}
+${dtc}
+Nafta: consumo promedio ${avgCons().toFixed(1)} L/100 km, precio ${S.cur}${S.fuelPrice}/L. Km este mes: ${Math.round(mk)} (${S.cur}${tripCost(mk).toFixed(2)} de nafta).
+${wx&&wx.current?'Clima: '+WX(wx.current.weather_code)[1]+', '+Math.round(wx.current.temperature_2m)+'°C.':''}
+${S.parking?'Parking guardado: '+new Date(S.parking.t).toLocaleString('es-AR')+'.':''}
+Fecha y hora: ${now.toLocaleString('es-AR')}.`;
+}
+function sysPrompt(){
+  return `Sos el asistente de voz del auto de ${(S.greet||'').replace(/^hola,?\s*/i,'')||'el conductor'}. Respondé en español rioplatense, en 1 a 3 oraciones cortas, porque la respuesta se lee en voz alta mientras maneja. Sin listas, sin markdown, sin emojis. Si algo es peligroso para el auto o la persona, decilo primero. Usá estos datos del auto cuando sirvan:\n${carContext()}`;
+}
+async function callLLM(){
+  const prov=S.ai.prov, key=(S.ai.keys[prov]||'').trim(), model=(S.ai.models[prov]||'').trim();
+  if(!key) throw new Error('Falta la clave de '+AI_NAMES[prov]+' en Ajustes');
+  if(!model) throw new Error('Falta el modelo de '+AI_NAMES[prov]+' en Ajustes');
+  const sys=sysPrompt(), msgs=aiHist.slice(-8);
+  let r, j;
+  if(prov==='gemini'){
+    r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{ method:'POST', headers:{ 'Content-Type':'application/json', 'x-goog-api-key':key },
+      body:JSON.stringify({ system_instruction:{ parts:[{ text:sys }] }, contents:msgs.map(m=>({ role:m.role==='user'?'user':'model', parts:[{ text:m.text }] })) }) });
+    j=await r.json(); if(!r.ok) throw new Error(j.error&&j.error.message||('Error '+r.status));
+    return ((j.candidates||[])[0]?.content?.parts||[]).map(p=>p.text||'').join('').trim();
+  }
+  if(prov==='openai'){
+    r=await fetch('https://api.openai.com/v1/chat/completions',{ method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+key },
+      body:JSON.stringify({ model, messages:[{ role:'system', content:sys }, ...msgs.map(m=>({ role:m.role, content:m.text }))] }) });
+    j=await r.json(); if(!r.ok) throw new Error(j.error&&j.error.message||('Error '+r.status));
+    return (j.choices&&j.choices[0].message.content||'').trim();
+  }
+  r=await fetch('https://api.anthropic.com/v1/messages',{ method:'POST', headers:{ 'Content-Type':'application/json', 'x-api-key':key, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+    body:JSON.stringify({ model, max_tokens:400, system:sys, messages:msgs.map(m=>({ role:m.role, content:m.text })) }) });
+  j=await r.json(); if(!r.ok) throw new Error(j.error&&j.error.message||('Error '+r.status));
+  return (j.content||[]).map(b=>b.text||'').join('').trim();
+}
+function renderChat(extra){
+  const P=plugin('Voice');
+  openModal(`<h2>Asistente <small>${AI_NAMES[S.ai.prov]}</small></h2>
+    <div class="chat">${aiHist.map(m=>`<div class="msg ${m.role==='user'?'u':'a'}">${esc(m.text)}</div>`).join('')}${extra?`<div class="msg w">${esc(extra)}</div>`:''}</div>
+    ${P?`<button class="bigmic tap" onclick="aiListen()" aria-label="Hablar">${svg('mic')}</button><div class="hint">Tocá y hablá</div>`
+       :`<div class="row"><input id="aiIn" class="wide" placeholder="Escribí tu pregunta" onkeydown="if(event.key==='Enter')aiSend(this.value)"><button class="btn go tap" onclick="aiSend($('aiIn').value)">Preguntar</button></div>`}
+    ${aiHist.length?'':`<div class="chips">${['¿Cuánto me falta para el cambio de aceite?','¿Qué tengo pendiente del auto?','¿Cuánto gasté de nafta este mes?','¿Va a llover?'].map(q=>`<button class="tap" onclick="aiSend('${q}')">${q}</button>`).join('')}</div>`}`);
+  const b=$('modalBody'); b.parentElement.scrollTop=b.parentElement.scrollHeight;
+}
+function askAI(){
+  const prov=S.ai.prov;
+  if(!(S.ai.keys[prov]||'').trim()){ openAISettings(); return; }
+  renderChat();
+  if(plugin('Voice')) aiListen();
+}
+async function aiListen(){
+  const P=plugin('Voice'); if(!P||aiBusy) return;
+  try { P.stop(); const r=await P.listen({ lang:S.ai.lang||'es-AR', prompt:'Preguntale a '+AI_NAMES[S.ai.prov] }); if(r.text) aiSend(r.text); }
+  catch(e){ toast(e.message||'No pude escuchar','err'); }
+}
+async function aiSend(text){
+  text=(text||'').trim(); if(!text||aiBusy) return;
+  aiBusy=true; aiHist.push({ role:'user', text }); renderChat('Pensando…');
+  try {
+    const ans = await callLLM() || 'No obtuve respuesta.';
+    aiHist.push({ role:'assistant', text:ans }); renderChat();
+    const V=plugin('Voice'); if(V && S.ai.voice) V.speak({ text:ans, lang:S.ai.lang||'es-AR' }).catch(()=>{});
+  } catch(e) {
+    aiHist.pop(); renderChat('No pude responder: '+(e.message||e));
+  }
+  aiBusy=false;
+}
+function openAISettings(){
+  const pv=S.ai.prov;
+  const help = { gemini:'Clave gratis en aistudio.google.com/apikey (Google AI Studio).', openai:'Clave en platform.openai.com (cobra por uso).', anthropic:'Clave en console.anthropic.com (cobra por uso).' }[pv];
+  openModal(`<h2>Asistente con IA</h2>
+    <div class="item"><span>Proveedor<small>${help}</small></span><span class="seg">${Object.keys(AI_NAMES).map(k=>`<button class="tap ${pv===k?'on':''}" onclick="S.ai.prov='${k}';save();openAISettings()">${AI_NAMES[k]}</button>`).join('')}</span></div>
+    <div class="item"><span>Clave de API<small>${S.ai.keys[pv]?'Guardada solo en esta tablet':'Pegala acá'}</small></span><input id="aiKey" class="wide" type="password" value="${esc(S.ai.keys[pv]||'')}" onchange="S.ai.keys['${pv}']=this.value.trim();save()"></div>
+    <div class="item"><span>Modelo<small>Cambialo si el proveedor lo actualiza</small></span><input class="wide" value="${esc(S.ai.models[pv]||'')}" placeholder="nombre del modelo" onchange="S.ai.models['${pv}']=this.value.trim();save()"></div>
+    <div class="item"><span>Leer respuestas en voz alta</span><button class="btn ${S.ai.voice?'go':''} tap" onclick="S.ai.voice=!S.ai.voice;save();openAISettings()">${S.ai.voice?'Sí':'No'}</button></div>
+    <div class="row" style="margin-top:1vh"><button class="btn go tap" onclick="S.ai.keys['${pv}']=$('aiKey').value.trim();save();askAI()">Probar el asistente</button></div>`);
 }
 
 /* ================= Paneles ================= */
@@ -792,8 +1002,11 @@ function openMaint(){
   openModal(`<h2>Service <small>odómetro ${fmtKm(S.odo)} km</small></h2>
     <div class="item"><span>Corregir odómetro<small>Poné los km que marca el tablero</small></span><span class="row"><input id="odoIn" type="number" value="${Math.round(S.odo)}"><button class="btn amb tap" onclick="S.odo=+$('odoIn').value;save();openMaint()">OK</button></span></div>`+
     S.maint.map((m,i)=>{ const left=Math.round(m.everyKm-(S.odo-m.lastKm)); return `<div class="item"><span>${m.name}<small>${left>0?'Faltan '+fmtKm(left)+' km':'A hacer (sin registro o vencido)'} · cada ${fmtKm(m.everyKm)} km</small></span><button class="btn go tap" onclick="S.maint[${i}].lastKm=S.odo;save();openMaint()">Hecho hoy</button></div>`; }).join('')+
-    S.dates.map((d,i)=>`<div class="item"><span>${d.name}<small>Vence</small></span><input type="date" value="${d.due}" onchange="S.dates[${i}].due=this.value;save()"></div>`).join('')+
-    `<div class="row" style="margin-top:1vh"><button class="btn tap" onclick="openFuel()">Registro de nafta</button></div>`);
+    S.dates.map((d,i)=>`<div class="item"><span>${esc(d.name)}<small>Vencimiento</small></span><span class="row"><input type="date" value="${d.due}" onchange="S.dates[${i}].due=this.value;save()"><button class="btn tap" onclick="renameDate(${i})">Editar</button></span></div>`).join('')+
+    `<div class="row" style="margin-top:1vh"><button class="btn tap" onclick="addDate()">+ Vencimiento</button><button class="btn tap" onclick="openFuel()">Registro de nafta</button></div>`);
+}
+function addDate(){ const n=prompt('Nombre (ej. Seguro, Patente, VTV, Licencia)'); if(n&&n.trim()){ S.dates.push({ name:n.trim(), due:'' }); save(); openMaint(); } }
+function renameDate(i){ const n=prompt('Nombre del vencimiento (vacío para borrarlo)', S.dates[i].name); if(n===null) return; if(n.trim()) S.dates[i].name=n.trim(); else S.dates.splice(i,1); save(); openMaint();
 }
 function openFuel(){
   const f=S.fuel; let avg='--';
@@ -801,7 +1014,7 @@ function openFuel(){
   if(full.length>=2){ const a=full[0], b=full[full.length-1]; const km=b.odo-a.odo; const L=full.slice(1).reduce((s,x)=>s+x.liters,0); if(km>0) avg=(L/km*100).toFixed(1); }
   openModal(`<h2>Nafta <small>promedio real: ${avg} L/100 km</small></h2>
     <div class="item"><span>Cargué (litros)</span><span class="row"><input id="fl" type="number" step="0.01"><button class="btn go tap" onclick="addFuel(true)">Tanque lleno</button><button class="btn tap" onclick="addFuel(false)">Parcial</button></span></div>`+
-    f.slice(-6).reverse().map(x=>`<div class="item"><span>${new Date(x.t).toLocaleDateString()} · ${x.liters} L<small>${fmtKm(x.odo)} km · ${x.full?'lleno':'parcial'}</small></span></div>`).join(''));
+    f.slice(-6).reverse().map(x=>`<div class="item"><span>${new Date(x.t).toLocaleDateString('es-AR')} · ${x.liters} L<small>${fmtKm(x.odo)} km · ${x.full?'lleno':'parcial'}</small></span></div>`).join(''));
 }
 function addFuel(full){ const l=parseFloat($('fl').value); if(!(l>0)) return; S.fuel.push({t:Date.now(),liters:l,odo:S.odo,full}); save(); openFuel(); }
 
@@ -826,10 +1039,13 @@ function setLook(k,v){ S[k]=v; save(); applyLook(); showSpeed(); renderObd(); op
 function editGreet(){ const g=prompt('Saludo (dejalo vacío para ocultarlo)', S.greet||''); if(g!==null) setLook('greet', g.trim()); }
 function openSettings(){
   const sw=(list,key)=>`<span class="swatches">${list.map(b=>`<button class="sw tap ${S[key]===b[0]?'on':''}" style="--s:${b[0]}" onclick="setLook('${key}','${b[0]}')" aria-label="${b[1]}"></button>`).join('')}</span>`;
-  const appRow=(k)=>(a,i)=>`<div class="item"><span>${a.n}<small>${a.pkg}${realIcons[a.pkg]?'':' · no instalada o sin detectar'}</small></span><button class="btn tap" onclick="editApp('${k}',${i})">Cambiar</button></div>`;
+  const appRow=(k)=>(a,i)=>a.special?'':`<div class="item"><span>${a.n}<small>${a.pkg}${realIcons[a.pkg]?'':' · no instalada o sin detectar'}</small></span><button class="btn tap" onclick="editApp('${k}',${i})">Cambiar</button></div>`;
   const P=plugin('Media');
   openModal(`<h2>Ajustes del launcher</h2>`+
     `<div class="item"><span>Foto del auto<small>${carPhoto?'Usando tu foto':'Passo 2004 gris (incluida)'}</small></span><span class="row"><button class="btn go tap" onclick="pickCarPhoto()">Elegir foto</button>${carPhoto?`<button class="btn tap" onclick="clearCarPhoto()">Volver a la original</button>`:''}</span></div>`+
+    `<div class="item"><span>Asistente con IA<small>${AI_NAMES[S.ai.prov]} · ${S.ai.keys[S.ai.prov]?'listo':'falta la clave'}</small></span><button class="btn go tap" onclick="openAISettings()">Configurar</button></div>`+
+    `<div class="item"><span>Nafta<small>Precio por litro y consumo estimado (se usa hasta que cargues tanques llenos)</small></span><span class="row"><input style="width:12vh" value="${esc(S.cur)}" onchange="S.cur=this.value.trim()||'$';save()"><input style="width:16vh" type="number" step="0.01" value="${S.fuelPrice}" onchange="S.fuelPrice=+this.value;save()"><input style="width:16vh" type="number" step="0.1" value="${S.consEst}" onchange="S.consEst=+this.value;save()"></span></div>`+
+    `<div class="item"><span>Abrir ${esc((S.dock.find(a=>a.main)||S.dock[0]).n)} al prender<small>Al arrancar la tablet abre tu app principal del dock</small></span><button class="btn ${S.autoCarplay?'go':''} tap" onclick="S.autoCarplay=!S.autoCarplay;save();openSettings()">${S.autoCarplay?'Sí':'No'}</button></div>`+
     `<div class="item"><span>Control de música<small>${!P?'Disponible en la APK':media.noAccess?'Falta permiso de acceso a notificaciones':'Activo'}</small></span>${P?`<button class="btn tap" onclick="askMediaAccess()">Permiso</button>`:''}</div>`+
     `<div class="item"><span>Modo noche<small>Automático: se oscurece con la puesta del sol</small></span><span class="seg">${[['auto','Auto'],['on','Siempre'],['off','Apagado']].map(([k,l])=>`<button class="tap ${S.night===k?'on':''}" onclick="S.night='${k}';save();applyNight();openSettings()">${l}</button>`).join('')}</span></div>`+
     `<div class="item"><span>Saludo<small>${esc(S.greet||'(oculto)')}</small></span><button class="btn tap" onclick="editGreet()">Cambiar</button></div>`+
@@ -850,7 +1066,8 @@ function editApp(k,i){
 }
 
 /* ================= Arranque ================= */
-applyLook(); renderCar(); renderApps(); renderNp(); initMap(); loadIcons(); renderShift(); renderObd(); showSpeed(); applyNight(); pollMedia();
+applyLook(); renderCar(); renderApps(); renderNp(); initMap(); loadIcons(); renderShift(); renderObd(); showSpeed(); applyNight(); pollMedia(); renderTripStat(); loadWeather();
+if (S.autoCarplay && plugin('AppIcons')) { const m=S.dock.find(a=>a.main&&a.pkg); if(m) setTimeout(()=>openApp(m.pkg), 4000); }
 document.addEventListener('deviceready',()=>{ BT = window.bluetoothSerial; loadIcons(); if(S.obdAddr && BT) connectObd(S.obdAddr); });
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ loadIcons(); pollMedia(); applyNight(); } });
 </script>

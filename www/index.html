@@ -69,11 +69,12 @@
   .stage::before { content:''; position:absolute; inset:6% 4% 14%; background:radial-gradient(ellipse 60% 52% at 50% 58%, color-mix(in srgb, var(--acc) 22%, transparent), transparent 70%); pointer-events:none; transition:background .6s; }
   .model { position:relative; font-size:1.45vh; letter-spacing:.34em; font-weight:800; color:var(--mut); text-transform:uppercase; }
   .model b { color:#e4e4e7; }
-  .car { position:relative; width:100%; max-width:62vh; margin-top:1.2vh; }
-  .car svg, .car img { display:block; width:100%; height:auto; }
-  .car img { aspect-ratio:480/232; object-fit:cover; border-radius:3vh; -webkit-mask-image:radial-gradient(ellipse 70% 70% at 50% 50%, #000 55%, transparent 100%); mask-image:radial-gradient(ellipse 70% 70% at 50% 50%, #000 55%, transparent 100%); }
-  .car .lamp { transition:opacity .5s; }
-  #alerts { position:relative; min-height:3.6vh; margin-top:.4vh; display:flex; gap:1vh; flex-wrap:wrap; justify-content:center; }
+  .car { position:relative; width:100%; max-width:66vh; margin-top:1.4vh; }
+  .car img { display:block; width:100%; height:auto; position:relative; z-index:1; }
+  .car img.cut { filter:drop-shadow(0 1.6vh 2.4vh rgba(0,0,0,.65)) brightness(1.04) contrast(1.04); }
+  .car img.own { aspect-ratio:737/380; object-fit:cover; border-radius:3vh; -webkit-mask-image:radial-gradient(ellipse 70% 70% at 50% 50%, #000 55%, transparent 100%); mask-image:radial-gradient(ellipse 70% 70% at 50% 50%, #000 55%, transparent 100%); }
+  .car .floor { position:absolute; left:6%; right:4%; bottom:-1.2vh; height:4.5vh; border-radius:50%; background:radial-gradient(ellipse at center, color-mix(in srgb, var(--acc) 38%, transparent), transparent 70%); filter:blur(1.2vh); z-index:0; }
+  #alerts { position:relative; min-height:3.6vh; margin-top:2.2vh; display:flex; gap:1vh; flex-wrap:wrap; justify-content:center; }
   #alerts span { font-size:1.55vh; font-weight:800; padding:.8vh 1.8vh; border-radius:99px; background:rgba(251,191,36,.12); color:var(--amb); }
   #alerts span.r { background:rgba(239,68,68,.18); color:#fca5a5; }
   .stats { position:relative; display:grid; grid-template-columns:repeat(4,1fr); gap:1.2vh; width:100%; max-width:80vh; margin-top:1.4vh; }
@@ -258,7 +259,6 @@ const DEF = {
   dates: [ { name:'WOF', due:'' }, { name:'Rego', due:'' } ],
   fuel: [], parking: null, shift: null, obdAddr: '',
   mono: false, greet: 'Hola, Fran', bg: '#000000', acc: '#10b981', side: 'rhd',
-  carColor: 'plata',
   apps: [
     { n:'Maps',    ic:'map',   c:'#34d399', pkg:'com.google.android.apps.maps' },
     { n:'Waze',    ic:'nav',   c:'#38bdf8', pkg:'com.waze' },
@@ -296,68 +296,11 @@ let carPhoto = null; try { carPhoto = localStorage.getItem('passoCarPhoto'); } c
 function tick(){ const d=new Date(); $('clock').textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
 tick(); setInterval(tick,1000);
 
-/* ================= El auto (ilustración propia o foto del usuario) ================= */
-const CAR_COLORS = {
-  plata:  ['#f4f4f5','#c4c7cc','#7c828b','#3f444b'],
-  blanco: ['#ffffff','#e7e8ea','#b8bcc2','#6b7078'],
-  negro:  ['#5b6068','#2b2f35','#15171a','#060708'],
-  rojo:   ['#fca5a5','#dc2626','#991b1b','#450a0a'],
-  azul:   ['#93c5fd','#2563eb','#1e3a8a','#0b1739']
-};
-function carSVG(){
-  const c = CAR_COLORS[S.carColor] || CAR_COLORS.plata;
-  return `<svg viewBox="60 28 480 232" aria-label="Passo">
-  <defs>
-    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="${c[0]}"/><stop offset=".38" stop-color="${c[1]}"/><stop offset=".72" stop-color="${c[2]}"/><stop offset="1" stop-color="${c[3]}"/>
-    </linearGradient>
-    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#3b4350"/><stop offset=".55" stop-color="#0f1217"/><stop offset="1" stop-color="#1c222b"/>
-    </linearGradient>
-    <radialGradient id="rim" cx=".5" cy=".45" r=".6">
-      <stop offset="0" stop-color="#f4f4f5"/><stop offset=".7" stop-color="#a1a1aa"/><stop offset="1" stop-color="#52525b"/>
-    </radialGradient>
-    <radialGradient id="shadow" cx=".5" cy=".5" r=".5">
-      <stop offset="0" stop-color="#000" stop-opacity=".9"/><stop offset="1" stop-color="#000" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="beam" cx="0" cy=".5" r="1">
-      <stop offset="0" stop-color="#fff7d6" stop-opacity=".55"/><stop offset="1" stop-color="#fff7d6" stop-opacity="0"/>
-    </radialGradient>
-  </defs>
-  <ellipse cx="300" cy="240" rx="235" ry="18" fill="url(#shadow)"/>
-  <path class="lamp" id="beamL" d="M92 166 L0 140 L0 200 Z" fill="url(#beam)" opacity="0"/>
-  <!-- carrocería: hatchback corto y alto -->
-  <path d="M112 216 C98 216 90 208 90 196 L92 178 C94 164 106 156 124 152 L192 140 C214 106 238 76 266 62 C310 46 402 44 446 48 C476 52 494 76 502 104 C508 128 512 160 512 190 C512 208 506 216 494 216 L468 216 A 50 50 0 0 0 366 216 L238 216 A 50 50 0 0 0 136 216 Z" fill="url(#body)"/>
-  <path d="M100 158 C200 146 300 140 508 142" fill="none" stroke="#fff" stroke-opacity=".38" stroke-width="2"/>
-  <path d="M92 186 C200 180 400 178 512 182" fill="none" stroke="#000" stroke-opacity=".18" stroke-width="2"/>
-  <!-- vidrios -->
-  <path d="M206 136 C226 108 246 84 272 72 L338 66 L340 134 Z" fill="url(#glass)"/>
-  <path d="M350 66 L442 62 C466 66 480 84 489 114 L491 132 L352 134 Z" fill="url(#glass)"/>
-  <path d="M216 128 C232 106 248 90 266 80" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="5" stroke-linecap="round"/>
-  <path d="M440 64 L446 132" stroke="${c[2]}" stroke-width="6"/>
-  <!-- puertas y manijas -->
-  <path d="M345 66 L346 210" stroke="#000" stroke-opacity=".28" stroke-width="2"/>
-  <path d="M238 142 L240 204" stroke="#000" stroke-opacity=".18" stroke-width="2"/>
-  <rect x="300" y="150" width="24" height="6" rx="3" fill="#000" fill-opacity=".3"/>
-  <rect x="420" y="150" width="24" height="6" rx="3" fill="#000" fill-opacity=".3"/>
-  <!-- espejo -->
-  <path d="M204 138 L222 128 L230 140 L212 146 Z" fill="${c[2]}"/>
-  <!-- ópticas -->
-  <path d="M92 170 C96 160 106 156 126 154 L130 168 C116 170 104 172 92 172 Z" fill="#fde68a" class="lamp" id="headL" opacity=".9"/>
-  <path d="M497 104 C504 122 508 140 510 160 L500 162 C499 144 496 126 491 108 Z" fill="#ef4444"/>
-  <!-- paragolpes -->
-  <path d="M92 198 L134 200" stroke="#000" stroke-opacity=".35" stroke-width="3" stroke-linecap="round"/>
-  <path d="M470 202 L510 200" stroke="#000" stroke-opacity=".35" stroke-width="3" stroke-linecap="round"/>
-  <!-- ruedas -->
-  ${[187,417].map(x=>`
-  <circle cx="${x}" cy="216" r="42" fill="#0b0b0c"/>
-  <circle cx="${x}" cy="216" r="28" fill="url(#rim)"/>
-  ${[0,45,90,135].map(a=>`<rect x="${x-2.5}" y="191" width="5" height="50" rx="2.5" fill="#71717a" transform="rotate(${a} ${x} 216)"/>`).join('')}
-  <circle cx="${x}" cy="216" r="8" fill="#d4d4d8"/>`).join('')}
-</svg>`;
-}
+/* ================= El auto (foto incluida en el APK o foto propia) ================= */
 function renderCar(){
-  $('car').innerHTML = carPhoto ? `<img src="${carPhoto}" alt="Mi Passo">` : carSVG();
+  $('car').innerHTML = carPhoto
+    ? `<img class="own" src="${carPhoto}" alt="Mi Passo">`
+    : `<img class="cut" src="img/passo.webp" onerror="this.onerror=null;this.src='img/passo.png'" alt="Toyota Passo"><div class="floor"></div>`;
 }
 function pickCarPhoto(){
   const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
@@ -594,7 +537,6 @@ function renderObd(){
   if(obd.sim) b.classList.add('sim');
   if(!obd.ok && !obd.sim) b.classList.add('sim');
   if(obd.mil && !hot && !obd.sim) b.className='tap bad';
-  const hl=$('headL'); if(hl) hl.setAttribute('opacity', obd.ok||speedKmh>3 ? '1' : '.75');
   refreshAlerts(hot,lowV);
 }
 
@@ -720,8 +662,7 @@ function openSettings(){
   const sw=(list,key)=>`<span class="swatches">${list.map(b=>`<button class="sw tap ${S[key]===b[0]?'on':''}" style="--s:${b[0]}" onclick="setLook('${key}','${b[0]}')" aria-label="${b[1]}"></button>`).join('')}</span>`;
   const appRow=(k)=>(a,i)=>`<div class="item"><span>${a.n}<small>${a.pkg}${realIcons[a.pkg]?'':' · no instalada o sin detectar'}</small></span><button class="btn tap" onclick="editApp('${k}',${i})">Cambiar</button></div>`;
   openModal(`<h2>Ajustes del launcher</h2>`+
-    `<div class="item"><span>Foto del auto<small>${carPhoto?'Usando tu foto':'Usando la ilustración'}</small></span><span class="row"><button class="btn go tap" onclick="pickCarPhoto()">Elegir foto</button>${carPhoto?`<button class="btn tap" onclick="clearCarPhoto()">Volver al dibujo</button>`:''}</span></div>`+
-    `<div class="item"><span>Color del auto<small>${S.carColor}</small></span><span class="swatches">${Object.keys(CAR_COLORS).map(k=>`<button class="sw tap ${S.carColor===k?'on':''}" style="--s:${CAR_COLORS[k][1]}" onclick="setLook('carColor','${k}')" aria-label="${k}"></button>`).join('')}</span></div>`+
+    `<div class="item"><span>Foto del auto<small>${carPhoto?'Usando tu foto':'Passo 2004 gris (incluido)'}</small></span><span class="row"><button class="btn go tap" onclick="pickCarPhoto()">Elegir foto</button>${carPhoto?`<button class="btn tap" onclick="clearCarPhoto()">Volver al original</button>`:''}</span></div>`+
     `<div class="item"><span>Saludo<small>${S.greet||'(oculto)'}</small></span><button class="btn tap" onclick="editGreet()">Cambiar</button></div>`+
     `<div class="item"><span>Color de acento<small>${(ACCS.find(b=>b[0]===S.acc)||ACCS[0])[1]}</small></span>${sw(ACCS,'acc')}</div>`+
     `<div class="item"><span>Fondo<small>${(BGS.find(b=>b[0]===S.bg)||BGS[0])[1]}</small></span>${sw(BGS,'bg')}</div>`+

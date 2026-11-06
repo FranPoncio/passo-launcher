@@ -23,6 +23,7 @@
     --ok:#10b981; --ok2:#34d399; --cold:#38bdf8; --bad:#ef4444; --amb:#fbbf24; --acc:#10b981;
   }
   * { box-sizing:border-box; margin:0; padding:0; border:0; outline:0; -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent; }
+  :root { --acc2:#38bdf8; --np:#18181b; }
   html,body { height:100%; background:var(--bg); color:var(--txt); font-family:'Inter',system-ui,sans-serif; overflow:hidden; transition:background .45s; }
   .mono { font-family:'JB',ui-monospace,monospace; font-variant-numeric:tabular-nums; }
   body { display:grid; grid-template-rows:8vh 1fr 12.5vh; padding:1.6vh 2.4vh 1.8vh; gap:1.4vh; }
@@ -48,7 +49,15 @@
   .hicon { width:6.4vh; height:6.4vh; display:flex; align-items:center; justify-content:center; color:var(--mut2); }
   .hicon svg { width:3vh; height:3vh; }
   .hicon.on { color:var(--amb); }
-  #clock { font-size:5.2vh; font-weight:800; }
+  #clock { font-size:5.2vh; font-weight:800; background:linear-gradient(90deg, #fff 30%, var(--acc2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  /* Brillo de fondo (aurora) en los colores del tema */
+  #aura { position:fixed; inset:-20%; z-index:-1; pointer-events:none; opacity:var(--aura,1);
+    background:
+      radial-gradient(42% 48% at 14% 24%, color-mix(in srgb, var(--acc) 42%, transparent), transparent 70%),
+      radial-gradient(44% 50% at 86% 80%, color-mix(in srgb, var(--acc2) 40%, transparent), transparent 70%),
+      radial-gradient(34% 34% at 60% 6%, color-mix(in srgb, var(--acc2) 20%, transparent), transparent 70%); }
+  body.anim #aura { animation:drift 38s ease-in-out infinite alternate; }
+  @keyframes drift { from { transform:translate3d(-3%,-2%,0) rotate(0deg); } to { transform:translate3d(3%,3%,0) rotate(8deg); } }
   .wx { display:none; align-items:center; gap:.9vh; height:6.4vh; padding:0 1.2vh; font-size:2.6vh; font-weight:800; color:#e4e4e7; }
   .wx.on { display:flex; }
   .wx svg { width:3.2vh; height:3.2vh; color:var(--amb); }
@@ -92,7 +101,7 @@
 
   /* Centro: mapa grande + música grande */
   .center { display:flex; flex-direction:column; gap:1.4vh; min-height:0; }
-  .mapcard { position:relative; isolation:isolate; z-index:0; flex:1; min-height:0; border-radius:3.2vh; overflow:hidden; background:#0c0e12; }
+  .mapcard { position:relative; isolation:isolate; z-index:0; flex:1; min-height:0; border-radius:3.2vh; overflow:hidden; background:#0c0e12; box-shadow:0 0 0 1px color-mix(in srgb, var(--acc) 35%, transparent), 0 2vh 6vh color-mix(in srgb, var(--acc) 18%, transparent); }
   #map { position:absolute; inset:0; background:#0c0e12; }
   .leaflet-tile-pane { filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.88) saturate(.55); }
   .leaflet-control-attribution { background:rgba(0,0,0,.55) !important; color:#71717a !important; font-size:1.3vh !important; }
@@ -105,14 +114,14 @@
   .me { width:2.6vh; height:2.6vh; border-radius:50%; background:var(--acc); box-shadow:0 0 0 .7vh color-mix(in srgb, var(--acc) 35%, transparent), 0 0 2vh var(--acc); }
   .pk { width:3.4vh; height:3.4vh; border-radius:1vh; background:#2563eb; color:#fff; font-weight:900; font-size:2vh; display:flex; align-items:center; justify-content:center; }
 
-  .np { position:absolute; left:1.4vh; right:1.4vh; bottom:1.4vh; z-index:500; background:rgba(12,12,14,.9); border-radius:2.8vh; padding:1.6vh; display:grid; grid-template-columns:13vh 1fr auto; gap:2.2vh; align-items:center; }
+  .np { position:absolute; left:1.4vh; right:1.4vh; bottom:1.4vh; z-index:500; background:linear-gradient(110deg, color-mix(in srgb, var(--np) 70%, #0c0c0e) 0%, rgba(12,12,14,.93) 62%); box-shadow:0 1vh 4vh color-mix(in srgb, var(--np) 35%, transparent); transition:background .8s; border-radius:2.8vh; padding:1.6vh; display:grid; grid-template-columns:13vh 1fr auto; gap:2.2vh; align-items:center; }
   .np .art { width:13vh; height:13vh; border-radius:2vh; background:var(--soft2) center/cover no-repeat; display:flex; align-items:center; justify-content:center; color:var(--mut2); }
   .np .art svg { width:5vh; height:5vh; }
   .np .meta { min-width:0; }
   .np .t { font-size:3vh; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .np .a { font-size:2.2vh; color:var(--mut2); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:.5vh; }
   .np .bar { height:.7vh; border-radius:99px; background:var(--soft2); margin-top:1.6vh; overflow:hidden; }
-  .np .bar i { display:block; height:100%; width:0; background:var(--acc); border-radius:99px; transition:width 1s linear; }
+  .np .bar i { display:block; height:100%; width:0; background:linear-gradient(90deg, var(--acc), var(--acc2)); border-radius:99px; transition:width 1s linear; }
   .np .ctl { display:flex; align-items:center; gap:.6vh; }
   .np .ctl button { width:8.5vh; height:9vh; display:flex; align-items:center; justify-content:center; color:#e4e4e7; }
   .np .ctl button svg { width:3.8vh; height:3.8vh; }
@@ -121,8 +130,8 @@
   .np .perm { font-size:2.1vh; font-weight:800; color:var(--amb); padding:2vh 3vh; border-radius:99px; background:rgba(251,191,36,.12); }
 
   .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:1.4vh; }
-  .stat { background:var(--soft); border-radius:2.4vh; padding:1.4vh 1vh; text-align:center; }
-  .stat small { display:block; font-size:1.9vh; letter-spacing:.12em; color:var(--mut); font-weight:800; text-transform:uppercase; }
+  .stat { --c:var(--acc); background:linear-gradient(160deg, color-mix(in srgb, var(--c) 20%, transparent), color-mix(in srgb, var(--c) 6%, transparent)); box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--c) 25%, transparent); border-radius:2.4vh; padding:1.4vh 1vh; text-align:center; }
+  .stat small { display:block; font-size:1.9vh; letter-spacing:.12em; color:color-mix(in srgb, var(--c) 75%, #fff); font-weight:800; text-transform:uppercase; }
   .stat b { display:block; font-size:2.8vh; font-weight:800; margin-top:.5vh; white-space:nowrap; }
   .stat b.warn { color:var(--amb); } .stat b.bad { color:#f87171; } .stat b.good { color:var(--ok2); }
 
@@ -130,7 +139,7 @@
   .apps { display:grid; grid-template-columns:repeat(2,1fr); gap:3.6vh 1.4vh; width:100%; }
   .app { display:flex; flex-direction:column; align-items:center; gap:1.2vh; font-size:2.1vh; font-weight:700; color:#e4e4e7; padding:.6vh 0; }
   .app .ico { width:9vh; height:9vh; display:flex; align-items:center; justify-content:center; }
-  .app img { width:9vh; height:9vh; border-radius:2.4vh; object-fit:cover; transition:filter .3s; }
+  .app img { width:9vh; height:9vh; border-radius:2.4vh; object-fit:cover; transition:filter .3s; box-shadow:0 1vh 2.6vh color-mix(in srgb, var(--c) 40%, transparent); }
   .fb { width:9vh; height:9vh; border-radius:2.6vh; display:flex; align-items:center; justify-content:center; background:color-mix(in srgb, var(--c) 16%, transparent); color:var(--c); }
   .fb svg { width:4.4vh; height:4.4vh; }
   body.mono-ic .app img, body.mono-ic .dr img, body.mono-ic .dk img { filter:grayscale(1) brightness(1.15); }
@@ -144,10 +153,10 @@
   .side { display:flex; align-items:center; gap:1.3vh; height:100%; padding:0 3vh; font-size:2.1vh; font-weight:800; color:#e4e4e7; }
   .side svg { width:3vh; height:3vh; }
   .dock { display:flex; align-items:center; gap:1vh; height:100%; padding:1.1vh; border-radius:99px; background:var(--soft); }
-  .dk { display:flex; align-items:center; gap:1.2vh; height:100%; padding:0 2.8vh; border-radius:99px; font-size:2.2vh; font-weight:800; color:var(--c); white-space:nowrap; }
+  .dk { display:flex; align-items:center; gap:1.2vh; height:100%; padding:0 2.8vh; border-radius:99px; font-size:2.2vh; font-weight:800; color:var(--c); white-space:nowrap; background:color-mix(in srgb, var(--c) 12%, transparent); }
   .dk svg { width:3.2vh; height:3.2vh; }
   .dk img { width:4.4vh; height:4.4vh; border-radius:1.1vh; }
-  .dk.main { background:color-mix(in srgb, var(--acc) 22%, transparent); color:#fff; }
+  .dk.main { background:linear-gradient(100deg, var(--acc), var(--acc2)); color:#05060a; box-shadow:0 1vh 3vh color-mix(in srgb, var(--acc) 40%, transparent); }
   .allapps { height:100%; aspect-ratio:1; border-radius:50%; background:#fff; color:#000; display:flex; align-items:center; justify-content:center; }
   .allapps svg { width:3.4vh; height:3.4vh; }
 
@@ -194,7 +203,7 @@
 </style>
 </head>
 <body>
-<div id="night"></div><div id="danger"></div><div id="toast"><i></i><span id="toastTxt"></span></div>
+<div id="aura"></div><div id="night"></div><div id="danger"></div><div id="toast"><i></i><span id="toastTxt"></span></div>
 
 <header>
   <div class="hl">
@@ -215,8 +224,9 @@
   <section class="col">
     <div class="gauge tap" onclick="openObd()">
       <svg viewBox="0 0 200 150">
+        <defs><linearGradient id="arcG" x1="0" y1="1" x2="1" y2="0"><stop offset="0" style="stop-color:var(--acc)"/><stop offset="1" style="stop-color:var(--acc2)"/></linearGradient></defs>
         <path d="M 25 130 A 80 80 0 1 1 175 130" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="11" stroke-linecap="round"/>
-        <path id="arc" d="M 25 130 A 80 80 0 1 1 175 130" fill="none" stroke="#10b981" stroke-width="11" stroke-linecap="round" stroke-dasharray="330" stroke-dashoffset="330" style="transition:stroke-dashoffset .3s,stroke .3s"/>
+        <path id="arc" d="M 25 130 A 80 80 0 1 1 175 130" fill="none" stroke="url(#arcG)" stroke-width="11" stroke-linecap="round" stroke-dasharray="330" stroke-dashoffset="330" style="transition:stroke-dashoffset .3s,stroke .3s"/>
       </svg>
       <div class="c">
         <div id="speed">0</div>
@@ -240,10 +250,10 @@
       <div class="np" id="np"></div>
     </div>
     <div class="stats">
-      <button class="stat tap" onclick="openMaint()"><small>Odómetro</small><b id="stOdo" class="mono">--</b></button>
-      <button class="stat tap" onclick="openMaint()"><small>Service</small><b id="stSvc" class="mono">--</b></button>
-      <button class="stat tap" onclick="openMaint()"><small id="stVtoL">Vence</small><b id="stVto" class="mono">--</b></button>
-      <button class="stat tap" onclick="openTrips()"><small>Viaje</small><b id="stTrip" class="mono">--</b></button>
+      <button class="stat tap" style="--c:#38bdf8" onclick="openMaint()"><small>Odómetro</small><b id="stOdo" class="mono">--</b></button>
+      <button class="stat tap" style="--c:#f59e0b" onclick="openMaint()"><small>Service</small><b id="stSvc" class="mono">--</b></button>
+      <button class="stat tap" style="--c:#34d399" onclick="openMaint()"><small id="stVtoL">Vence</small><b id="stVto" class="mono">--</b></button>
+      <button class="stat tap" style="--c:#c084fc" onclick="openTrips()"><small>Viaje</small><b id="stTrip" class="mono">--</b></button>
     </div>
   </section>
 
@@ -325,7 +335,7 @@ const DEF = {
   ],
   dates: [ { name:'WOF', due:'2027-07-01' }, { name:'Rego', due:'2027-06-27' } ],
   fuel: [], parking: null, shift: null, obdAddr: '',
-  mono: false, greet: 'Hola, Fran', bg: '#000000', acc: '#10b981', side: 'rhd', night: 'auto',
+  mono: false, greet: 'Hola, Fran', theme: 'aurora', anim: true, bg: '#000000', acc: '#10b981', side: 'rhd', night: 'auto',
   lastPos: null, cur: '$', fuelPrice: 3.0, consEst: 6.5, autoCarplay: false,
   trips: [], trip: null,
   ai: { prov:'gemini', keys:{ gemini:'', openai:'', anthropic:'' }, models:{ gemini:'gemini-flash-latest', openai:'', anthropic:'claude-haiku-5-5' }, voice:true, lang:'es-AR' },
@@ -416,7 +426,7 @@ async function loadIcons(){
 const icoHTML = a => realIcons[a.pkg] ? `<img src="${realIcons[a.pkg]}" alt="">` : `<span class="fb" style="--c:${a.c}">${svg(a.ic)}</span>`;
 function renderApps(){
   document.body.classList.toggle('mono-ic', !!S.mono);
-  $('apps').innerHTML = S.apps.map(a=>`<button class="app tap" onclick="openApp('${a.pkg}')"><span class="ico">${icoHTML(a)}</span>${a.n}</button>`).join('');
+  $('apps').innerHTML = S.apps.map(a=>`<button class="app tap" style="--c:${a.c}" onclick="openApp('${a.pkg}')"><span class="ico">${icoHTML(a)}</span>${a.n}</button>`).join('');
   const half = Math.ceil(S.dock.length/2);
   const dk = a => `<button class="dk tap ${a.main?'main':''}" style="--c:${a.c}" onclick="${a.special==='ai'?'askAI()':`openApp('${a.pkg}')`}">${realIcons[a.pkg]?`<img src="${realIcons[a.pkg]}" alt="">`:svg(a.ic)}${a.n}</button>`;
   $('dock').innerHTML = S.dock.slice(0,half).map(dk).join('') +
@@ -455,6 +465,16 @@ function renderNp(){
       <button class="tap" onclick="mediaCtl('next')" aria-label="Siguiente">${fsvg('next')}</button>
     </div>`;
 }
+function artColor(src){
+  const R=document.documentElement.style;
+  if(!src){ R.setProperty('--np', 'var(--acc)'); return; }
+  const img=new Image(); img.onload=()=>{ try{
+    const c=document.createElement('canvas'); c.width=c.height=16; const g=c.getContext('2d'); g.drawImage(img,0,0,16,16);
+    const d=g.getImageData(0,0,16,16).data; let r=0,gg=0,b=0,n=0;
+    for(let i=0;i<d.length;i+=4){ const mx=Math.max(d[i],d[i+1],d[i+2]), mn=Math.min(d[i],d[i+1],d[i+2]); const w=(mx-mn)+8; r+=d[i]*w; gg+=d[i+1]*w; b+=d[i+2]*w; n+=w; }
+    R.setProperty('--np', `rgb(${Math.round(r/n)},${Math.round(gg/n)},${Math.round(b/n)})`);
+  }catch(e){} }; img.src=src;
+}
 async function pollMedia(){
   const P=plugin('Media'); if(!P) return;
   try {
@@ -463,7 +483,7 @@ async function pollMedia(){
     const before = key();
     media.noAccess = !!r.noAccess; media.active = !!r.active;
     if (r.active) {
-      if (r.art !== undefined) media.art = r.art || '';
+      if (r.art !== undefined) { media.art = r.art || ''; artColor(media.art); }
       media.title = r.title||''; media.artist = r.artist||''; media.playing = !!r.playing;
       media.pos = r.position||0; media.dur = r.duration||0; media.pkg = r.pkg||'';
     }
@@ -492,13 +512,23 @@ let tt; function toast(m, kind){
 }
 
 /* ================= Apariencia ================= */
+const THEMES = {
+  aurora: { n:'Aurora',  acc:'#34d399', acc2:'#38bdf8', bg:'#02080a' },
+  neon:   { n:'Neón',    acc:'#22d3ee', acc2:'#e879f9', bg:'#06040d' },
+  sunset: { n:'Atardecer', acc:'#fb923c', acc2:'#f43f5e', bg:'#0c0506' },
+  retro:  { n:'Retro',   acc:'#facc15', acc2:'#a855f7', bg:'#0a0612' },
+  ocean:  { n:'Océano',  acc:'#38bdf8', acc2:'#6366f1', bg:'#030612' },
+  oled:   { n:'OLED negro', acc:'#10b981', acc2:'#10b981', bg:'#000000', flat:true }
+};
 const BGS = [ ['#000000','Negro OLED'], ['#070b14','Azul noche'], ['#0f1318','Grafito'], ['#140709','Bordó'], ['#05120e','Esmeralda'] ];
 const ACCS = [ ['#10b981','Verde'], ['#38bdf8','Celeste'], ['#f59e0b','Ámbar'], ['#ef4444','Rojo'], ['#a78bfa','Violeta'] ];
 function applyLook(){
   $('greet').textContent = S.greet || '';
   $('greet').style.display = S.greet ? '' : 'none';
-  document.documentElement.style.setProperty('--bg', S.bg||'#000');
-  document.documentElement.style.setProperty('--acc', S.acc||'#10b981');
+  const t = THEMES[S.theme] || THEMES.aurora, R = document.documentElement.style;
+  R.setProperty('--bg', t.bg); R.setProperty('--acc', t.acc); R.setProperty('--acc2', t.acc2);
+  R.setProperty('--aura', t.flat ? 0 : 1);
+  S.acc = t.acc; document.body.classList.toggle('anim', !!S.anim && !t.flat);
   document.querySelector('main').classList.toggle('lhd', S.side==='lhd');
 }
 
@@ -565,7 +595,7 @@ function hav(a,b,c,d){ const R=6371,r=x=>x*Math.PI/180; const dl=r(c-a),dn=r(d-b
 function showSpeed(){
   const v = Math.round(speedKmh<3?0:speedKmh);
   $('speed').textContent = v;
-  if (!obd.ok) { const arc=$('arc'); arc.style.strokeDashoffset = 330-330*Math.min(1,v/120); arc.setAttribute('stroke', S.acc||'#10b981'); }
+  if (!obd.ok) { const arc=$('arc'); arc.style.strokeDashoffset = 330-330*Math.min(1,v/120); arc.setAttribute('stroke', 'url(#arcG)'); }
 }
 if (navigator.geolocation) {
   navigator.geolocation.watchPosition(p=>{
@@ -722,7 +752,7 @@ function renderObd(){
   const hot=t!=null&&t>=100, lowV=v!=null&&v<12.0, cold=t!=null&&t<60;
   if (obd.ok) {
     const arc=$('arc'); arc.style.strokeDashoffset = 330-330*Math.min(1,(rpm||0)/6500);
-    arc.setAttribute('stroke', hot?'#ef4444': cold?'#38bdf8': (S.acc||'#10b981'));
+    arc.setAttribute('stroke', hot?'#ef4444': cold?'#38bdf8': 'url(#arcG)');
   }
   $('danger').style.display = hot?'block':'none';
   const b=$('badge');
@@ -1049,8 +1079,8 @@ function openSettings(){
     `<div class="item"><span>Control de música<small>${!P?'Disponible en la APK':media.noAccess?'Falta permiso de acceso a notificaciones':'Activo'}</small></span>${P?`<button class="btn tap" onclick="askMediaAccess()">Permiso</button>`:''}</div>`+
     `<div class="item"><span>Modo noche<small>Automático: se oscurece con la puesta del sol</small></span><span class="seg">${[['auto','Auto'],['on','Siempre'],['off','Apagado']].map(([k,l])=>`<button class="tap ${S.night===k?'on':''}" onclick="S.night='${k}';save();applyNight();openSettings()">${l}</button>`).join('')}</span></div>`+
     `<div class="item"><span>Saludo<small>${esc(S.greet||'(oculto)')}</small></span><button class="btn tap" onclick="editGreet()">Cambiar</button></div>`+
-    `<div class="item"><span>Color de acento<small>${(ACCS.find(b=>b[0]===S.acc)||ACCS[0])[1]}</small></span>${sw(ACCS,'acc')}</div>`+
-    `<div class="item"><span>Fondo<small>${(BGS.find(b=>b[0]===S.bg)||BGS[0])[1]}</small></span>${sw(BGS,'bg')}</div>`+
+    `<div class="item"><span>Tema de colores<small>${(THEMES[S.theme]||THEMES.aurora).n}</small></span><span class="swatches">${Object.keys(THEMES).map(k=>`<button class="sw tap ${S.theme===k?'on':''}" style="--s:linear-gradient(135deg, ${THEMES[k].acc}, ${THEMES[k].acc2})" onclick="setLook('theme','${k}')" aria-label="${THEMES[k].n}"></button>`).join('')}</span></div>`+
+    `<div class="item"><span>Brillo de fondo en movimiento<small>Si la tablet anda lenta, apagalo</small></span><button class="btn ${S.anim?'go':''} tap" onclick="S.anim=!S.anim;save();applyLook();openSettings()">${S.anim?'Sí':'No'}</button></div>`+
     `<div class="item"><span>Lado del volante<small>${S.side==='lhd'?'Izquierda: apps a la izquierda':'Derecha (Passo japonés): apps cerca tuyo'}</small></span><button class="btn tap" onclick="setLook('side','${S.side==='lhd'?'rhd':'lhd'}')">Invertir</button></div>`+
     `<div class="item"><span>Íconos de apps<small>${S.mono?'Monocromo':'Color original'}</small></span><button class="btn tap" onclick="S.mono=!S.mono;save();renderApps();openSettings()">${S.mono?'Pasar a color':'Pasar a monocromo'}</button></div>`+
     `<h2 style="margin-top:1.8vh">Apps de la derecha</h2>`+ S.apps.map(appRow('apps')).join('')+
@@ -1066,7 +1096,7 @@ function editApp(k,i){
 }
 
 /* ================= Arranque ================= */
-applyLook(); renderCar(); renderApps(); renderNp(); initMap(); loadIcons(); renderShift(); renderObd(); showSpeed(); applyNight(); pollMedia(); renderTripStat(); loadWeather();
+applyLook(); artColor(""); renderCar(); renderApps(); renderNp(); initMap(); loadIcons(); renderShift(); renderObd(); showSpeed(); applyNight(); pollMedia(); renderTripStat(); loadWeather();
 if (S.autoCarplay && plugin('AppIcons')) { const m=S.dock.find(a=>a.main&&a.pkg); if(m) setTimeout(()=>openApp(m.pkg), 4000); }
 document.addEventListener('deviceready',()=>{ BT = window.bluetoothSerial; loadIcons(); if(S.obdAddr && BT) connectObd(S.obdAddr); });
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ loadIcons(); pollMedia(); applyNight(); } });

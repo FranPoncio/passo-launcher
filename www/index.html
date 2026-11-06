@@ -14,134 +14,154 @@
   @font-face { font-family:'JB'; font-weight:700; src:url(fonts/jetbrains-mono-latin-700-normal.woff2) format('woff2'); }
   @font-face { font-family:'JB'; font-weight:800; src:url(fonts/jetbrains-mono-latin-800-normal.woff2) format('woff2'); }
 
+  /* Tamaños en vh: en 720 px de alto, 1vh = 7,2 px. Mínimo de texto: 2vh (~14 px). */
   :root {
-    --bg:#000; --soft:rgba(255,255,255,.06); --soft2:rgba(255,255,255,.1);
-    --txt:#fff; --mut:#71717a; --mut2:#a1a1aa;
+    --bg:#000; --soft:rgba(255,255,255,.07); --soft2:rgba(255,255,255,.12);
+    --txt:#fff; --mut:#8b8b94; --mut2:#b4b4bc;
     --ok:#10b981; --ok2:#34d399; --cold:#38bdf8; --bad:#ef4444; --amb:#fbbf24; --acc:#10b981;
   }
   * { box-sizing:border-box; margin:0; padding:0; border:0; outline:0; -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent; }
   html,body { height:100%; background:var(--bg); color:var(--txt); font-family:'Inter',system-ui,sans-serif; overflow:hidden; transition:background .45s; }
   .mono { font-family:'JB',ui-monospace,monospace; font-variant-numeric:tabular-nums; }
-  body { display:grid; grid-template-rows:9vh 1fr 12vh; padding:1.6vh 2.4vh 1.8vh; gap:1vh; }
+  body { display:grid; grid-template-rows:8vh 1fr 12.5vh; padding:1.6vh 2.4vh 1.8vh; gap:1.4vh; }
   button { font:inherit; color:inherit; background:none; cursor:pointer; }
-  .tap { transition:transform .15s cubic-bezier(.16,1,.3,1), opacity .2s; }
-  .tap:active { transform:scale(.9); }
+  .tap { transition:transform .12s ease-out, opacity .2s; }
+  .tap:active { transform:scale(.92); opacity:.85; }
   .pill { background:var(--soft); border-radius:99px; }
   svg.i { fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
+  svg.f { fill:currentColor; stroke:none; }
 
   /* ---------- Barra superior ---------- */
   header { display:flex; align-items:center; justify-content:space-between; }
-  .hl, .hr { display:flex; align-items:center; gap:2vh; }
-  .greet { font-weight:800; letter-spacing:.22em; font-size:1.9vh; text-transform:uppercase; }
-  .brand { font-weight:800; letter-spacing:.16em; font-size:1.9vh; color:var(--bad); }
-  #badge { display:flex; align-items:center; gap:1vh; font-size:1.6vh; font-weight:800; letter-spacing:.08em; text-transform:uppercase; padding:.9vh 2vh; border-radius:99px; background:rgba(16,185,129,.15); color:var(--ok2); }
-  #badge i { width:1.1vh; height:1.1vh; border-radius:50%; background:currentColor; box-shadow:0 0 1.2vh currentColor; }
+  .hl, .hr { display:flex; align-items:center; gap:2.2vh; }
+  .greet { font-weight:800; letter-spacing:.18em; font-size:2.3vh; text-transform:uppercase; }
+  .brand { font-weight:800; letter-spacing:.14em; font-size:2.3vh; color:var(--bad); }
+  #badge { display:flex; align-items:center; gap:1.1vh; font-size:2vh; font-weight:800; letter-spacing:.06em; text-transform:uppercase; padding:1.2vh 2.4vh; border-radius:99px; background:rgba(16,185,129,.15); color:var(--ok2); }
+  #badge i { width:1.3vh; height:1.3vh; border-radius:50%; background:currentColor; }
   #badge.cold { background:rgba(56,189,248,.14); color:var(--cold); }
-  #badge.bad { background:rgba(239,68,68,.2); color:#fca5a5; }
+  #badge.bad { background:rgba(239,68,68,.22); color:#fca5a5; }
   #badge.sim { background:rgba(251,191,36,.13); color:var(--amb); }
-  .hbtn { display:flex; align-items:center; gap:1vh; padding:1vh 2.2vh; font-size:1.7vh; font-weight:700; color:#d4d4d8; }
-  .hbtn svg { width:2.2vh; height:2.2vh; }
-  .hicon { color:var(--mut2); padding:1vh; } .hicon svg { width:2.6vh; height:2.6vh; }
-  #clock { font-size:4.4vh; font-weight:800; letter-spacing:.02em; }
+  .hbtn { display:flex; align-items:center; gap:1.1vh; padding:1.4vh 2.6vh; font-size:2.1vh; font-weight:700; color:#e4e4e7; }
+  .hbtn svg { width:2.6vh; height:2.6vh; }
+  .hicon { width:6.4vh; height:6.4vh; display:flex; align-items:center; justify-content:center; color:var(--mut2); }
+  .hicon svg { width:3vh; height:3vh; }
+  .hicon.on { color:var(--amb); }
+  #clock { font-size:5.2vh; font-weight:800; }
 
   /* ---------- Centro de la pantalla ---------- */
-  main { display:grid; grid-template-columns:24% 1fr 23%; gap:2vh; min-height:0; }
+  main { display:grid; grid-template-columns:27% 1fr 24%; gap:2.4vh; min-height:0; }
   main.lhd > :nth-child(1) { order:3; } main.lhd > :nth-child(3) { order:1; }
-  .col { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:0; }
+  .col { display:flex; flex-direction:column; align-items:center; justify-content:space-evenly; min-height:0; }
 
-  /* Izquierda: velocímetro */
-  .gauge { position:relative; width:100%; max-width:38vh; aspect-ratio:1/.82; }
+  /* Izquierda: velocidad + música */
+  .gauge { position:relative; width:100%; max-width:40vh; aspect-ratio:1/.8; }
   .gauge svg { width:100%; height:100%; overflow:visible; }
-  .gauge .c { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding-top:9%; }
-  #speed { font-size:13vh; font-weight:900; line-height:.9; letter-spacing:-.05em; }
-  .unit { font-size:1.45vh; letter-spacing:.24em; color:var(--mut); font-weight:800; text-transform:uppercase; margin-top:1vh; }
-  #rpm { font-size:1.75vh; font-weight:800; color:var(--ok2); margin-top:.8vh; letter-spacing:.06em; }
-  .tiles { display:flex; gap:3.4vh; margin-top:2.2vh; }
-  .tile { text-align:center; }
-  .tile small { display:block; font-size:1.3vh; letter-spacing:.18em; color:var(--mut); font-weight:800; text-transform:uppercase; margin-bottom:.6vh; }
-  .tile span { font-size:3.6vh; font-weight:800; white-space:nowrap; }
-  .tile span small { display:inline; font-size:1.7vh; color:var(--mut); letter-spacing:0; }
-  .lnk { margin-top:2.4vh; display:flex; align-items:center; gap:1vh; padding:1vh 2.2vh; font-size:1.55vh; font-weight:700; color:#d4d4d8; }
-  .lnk svg { width:2vh; height:2vh; color:var(--ok2); }
+  .gauge .c { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding-top:10%; }
+  #speed { font-size:14.5vh; font-weight:900; line-height:.88; letter-spacing:-.05em; }
+  .unit { font-size:2vh; letter-spacing:.2em; color:var(--mut); font-weight:800; text-transform:uppercase; margin-top:1.2vh; }
+  #obdLine { display:none; width:100%; justify-content:space-around; margin-top:-1vh; }
+  #obdLine.on { display:flex; }
+  #obdLine span { display:flex; flex-direction:column; align-items:center; white-space:nowrap; }
+  #obdLine b { font-size:3.2vh; font-weight:800; }
+  #obdLine small { font-size:1.9vh; color:var(--mut); font-family:'Inter',sans-serif; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+  #obdLine #rpm { color:var(--ok2); }
+
+  .np { width:100%; background:var(--soft); border-radius:3vh; padding:1.8vh; display:grid; grid-template-columns:11vh 1fr; gap:1.8vh; align-items:center; }
+  .np .art { width:11vh; height:11vh; border-radius:2vh; background:var(--soft2) center/cover no-repeat; display:flex; align-items:center; justify-content:center; color:var(--mut2); }
+  .np .art svg { width:4.4vh; height:4.4vh; }
+  .np .meta { min-width:0; }
+  .np .t { font-size:2.4vh; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .np .a { font-size:2vh; color:var(--mut2); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:.4vh; }
+  .np .bar { height:.6vh; border-radius:99px; background:var(--soft2); margin-top:1.2vh; overflow:hidden; }
+  .np .bar i { display:block; height:100%; width:0; background:var(--acc); border-radius:99px; transition:width 1s linear; }
+  .np .ctl { grid-column:1 / -1; display:flex; align-items:center; justify-content:space-around; }
+  .np .ctl button { width:8vh; height:7vh; display:flex; align-items:center; justify-content:center; color:#e4e4e7; }
+  .np .ctl button svg { width:3.4vh; height:3.4vh; }
+  .np .ctl .pp { width:8vh; height:8vh; border-radius:50%; background:#fff; color:#000; }
+  .np .ctl .pp svg { width:3.4vh; height:3.4vh; }
+  .np .perm { grid-column:1 / -1; font-size:2vh; font-weight:800; color:var(--amb); padding:1.4vh; border-radius:99px; background:rgba(251,191,36,.12); }
 
   /* Centro: el auto */
   .stage { position:relative; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-  .stage::before { content:''; position:absolute; inset:6% 4% 14%; background:radial-gradient(ellipse 60% 52% at 50% 58%, color-mix(in srgb, var(--acc) 22%, transparent), transparent 70%); pointer-events:none; transition:background .6s; }
-  .model { position:relative; font-size:1.45vh; letter-spacing:.34em; font-weight:800; color:var(--mut); text-transform:uppercase; }
+  .stage::before { content:''; position:absolute; inset:4% 2% 18%; background:radial-gradient(ellipse 58% 50% at 50% 60%, color-mix(in srgb, var(--acc) 20%, transparent), transparent 70%); pointer-events:none; transition:background .6s; }
+  .model { position:relative; font-size:2vh; letter-spacing:.3em; font-weight:800; color:var(--mut); text-transform:uppercase; }
   .model b { color:#e4e4e7; }
-  .car { position:relative; width:100%; max-width:66vh; margin-top:1.4vh; }
+  .car { position:relative; width:100%; max-width:72vh; margin-top:1.6vh; }
   .car img { display:block; width:100%; height:auto; position:relative; z-index:1; }
-  .car img.cut { filter:drop-shadow(0 1.6vh 2.4vh rgba(0,0,0,.65)) brightness(1.04) contrast(1.04); }
-  .car img.own { aspect-ratio:737/380; object-fit:cover; border-radius:3vh; -webkit-mask-image:radial-gradient(ellipse 70% 70% at 50% 50%, #000 55%, transparent 100%); mask-image:radial-gradient(ellipse 70% 70% at 50% 50%, #000 55%, transparent 100%); }
-  .car .floor { position:absolute; left:6%; right:4%; bottom:-1.2vh; height:4.5vh; border-radius:50%; background:radial-gradient(ellipse at center, color-mix(in srgb, var(--acc) 38%, transparent), transparent 70%); filter:blur(1.2vh); z-index:0; }
-  #alerts { position:relative; min-height:3.6vh; margin-top:2.2vh; display:flex; gap:1vh; flex-wrap:wrap; justify-content:center; }
-  #alerts span { font-size:1.55vh; font-weight:800; padding:.8vh 1.8vh; border-radius:99px; background:rgba(251,191,36,.12); color:var(--amb); }
-  #alerts span.r { background:rgba(239,68,68,.18); color:#fca5a5; }
-  .stats { position:relative; display:grid; grid-template-columns:repeat(4,1fr); gap:1.2vh; width:100%; max-width:80vh; margin-top:1.4vh; }
-  .stat { background:var(--soft); border-radius:2.2vh; padding:1.3vh 1.4vh; text-align:center; }
-  .stat small { display:block; font-size:1.2vh; letter-spacing:.18em; color:var(--mut); font-weight:800; text-transform:uppercase; }
-  .stat b { display:block; font-size:2.3vh; font-weight:800; margin-top:.5vh; white-space:nowrap; }
+  .car img.own { aspect-ratio:738/391; object-fit:cover; border-radius:3vh; -webkit-mask-image:radial-gradient(ellipse 70% 70% at 50% 50%, #000 55%, transparent 100%); mask-image:radial-gradient(ellipse 70% 70% at 50% 50%, #000 55%, transparent 100%); }
+  .car .floor { position:absolute; left:4%; right:2%; bottom:-1.6vh; height:5vh; border-radius:50%; background:radial-gradient(ellipse at center, color-mix(in srgb, var(--acc) 40%, transparent), transparent 70%); filter:blur(1.2vh); z-index:0; }
+  #alerts { position:relative; min-height:4.4vh; margin-top:2.6vh; display:flex; gap:1.2vh; flex-wrap:wrap; justify-content:center; }
+  #alerts span { font-size:2vh; font-weight:800; padding:1vh 2.2vh; border-radius:99px; background:rgba(251,191,36,.13); color:var(--amb); }
+  #alerts span.r { background:rgba(239,68,68,.2); color:#fca5a5; }
+  .stats { position:relative; display:grid; grid-template-columns:repeat(4,1fr); gap:1.4vh; width:100%; max-width:90vh; margin-top:1.6vh; }
+  .stat { background:var(--soft); border-radius:2.4vh; padding:1.6vh 1.2vh; text-align:center; }
+  .stat small { display:block; font-size:1.9vh; letter-spacing:.12em; color:var(--mut); font-weight:800; text-transform:uppercase; }
+  .stat b { display:block; font-size:2.9vh; font-weight:800; margin-top:.6vh; white-space:nowrap; }
   .stat b.warn { color:var(--amb); } .stat b.bad { color:#f87171; } .stat b.good { color:var(--ok2); }
 
   /* Derecha: apps */
-  .apps { display:grid; grid-template-columns:repeat(2,1fr); gap:3.2vh 1vh; width:100%; }
-  .app { display:flex; flex-direction:column; align-items:center; gap:1.1vh; font-size:1.65vh; font-weight:700; color:#e4e4e7; }
-  .app .ico { width:7vh; height:7vh; display:flex; align-items:center; justify-content:center; }
-  .app img { width:7vh; height:7vh; border-radius:1.9vh; object-fit:cover; transition:filter .3s; }
-  .fb { width:7vh; height:7vh; border-radius:2.2vh; display:flex; align-items:center; justify-content:center; background:color-mix(in srgb, var(--c) 15%, transparent); color:var(--c); }
-  .fb svg { width:3.6vh; height:3.6vh; }
-  body.mono-ic .app img, body.mono-ic .dr img { filter:grayscale(1) brightness(1.15); }
+  .apps { display:grid; grid-template-columns:repeat(2,1fr); gap:3.6vh 1.4vh; width:100%; }
+  .app { display:flex; flex-direction:column; align-items:center; gap:1.2vh; font-size:2.1vh; font-weight:700; color:#e4e4e7; padding:.6vh 0; }
+  .app .ico { width:9vh; height:9vh; display:flex; align-items:center; justify-content:center; }
+  .app img { width:9vh; height:9vh; border-radius:2.4vh; object-fit:cover; transition:filter .3s; }
+  .fb { width:9vh; height:9vh; border-radius:2.6vh; display:flex; align-items:center; justify-content:center; background:color-mix(in srgb, var(--c) 16%, transparent); color:var(--c); }
+  .fb svg { width:4.4vh; height:4.4vh; }
+  body.mono-ic .app img, body.mono-ic .dr img, body.mono-ic .dk img { filter:grayscale(1) brightness(1.15); }
   body.mono-ic .fb { background:var(--soft); color:#e4e4e7; }
-  .work { margin-top:4.4vh; width:100%; display:flex; align-items:center; justify-content:center; gap:1.2vh; padding:1.7vh; font-size:1.6vh; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--amb); }
-  .work svg { width:2.2vh; height:2.2vh; }
+  .work { width:100%; display:flex; align-items:center; justify-content:center; gap:1.3vh; padding:2.2vh; font-size:2.1vh; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--amb); }
+  .work svg { width:2.8vh; height:2.8vh; }
   .work.on { background:rgba(251,191,36,.16); }
 
   /* ---------- Dock inferior ---------- */
   footer { display:flex; align-items:center; justify-content:space-between; gap:2vh; }
-  .side { display:flex; align-items:center; gap:1.2vh; padding:1.5vh 2.6vh; font-size:1.65vh; font-weight:800; color:#e4e4e7; }
-  .side svg { width:2.3vh; height:2.3vh; }
-  .dock { display:flex; align-items:center; gap:3.4vh; padding:1.1vh 1.4vh 1.1vh 3.4vh; border-radius:99px; background:var(--soft); }
-  .dk { display:flex; align-items:center; gap:.9vh; font-size:1.7vh; font-weight:800; color:var(--c); white-space:nowrap; }
-  .dk svg { width:2.2vh; height:2.2vh; }
-  .dk img { width:2.8vh; height:2.8vh; border-radius:.7vh; }
-  .allapps { width:6.6vh; height:6.6vh; border-radius:50%; background:#fff; color:#000; display:flex; align-items:center; justify-content:center; }
-  .allapps svg { width:2.8vh; height:2.8vh; }
+  .side { display:flex; align-items:center; gap:1.3vh; height:100%; padding:0 3vh; font-size:2.1vh; font-weight:800; color:#e4e4e7; }
+  .side svg { width:3vh; height:3vh; }
+  .dock { display:flex; align-items:center; gap:1vh; height:100%; padding:1.1vh; border-radius:99px; background:var(--soft); }
+  .dk { display:flex; align-items:center; gap:1.2vh; height:100%; padding:0 2.8vh; border-radius:99px; font-size:2.2vh; font-weight:800; color:var(--c); white-space:nowrap; }
+  .dk svg { width:3.2vh; height:3.2vh; }
+  .dk img { width:4.4vh; height:4.4vh; border-radius:1.1vh; }
+  .dk.main { background:color-mix(in srgb, var(--acc) 22%, transparent); color:#fff; }
+  .allapps { height:100%; aspect-ratio:1; border-radius:50%; background:#fff; color:#000; display:flex; align-items:center; justify-content:center; }
+  .allapps svg { width:3.4vh; height:3.4vh; }
 
-  /* ---------- Paneles (modales) ---------- */
-  #modal { position:fixed; inset:0; background:rgba(0,0,0,.94); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); display:none; flex-direction:column; padding:4vh 6vh; z-index:30; overflow:auto; }
-  #modal.on { display:flex; animation:up .28s cubic-bezier(.16,1,.3,1); }
+  /* ---------- Paneles ---------- */
+  #modal { position:fixed; inset:0; background:rgba(0,0,0,.97); display:none; flex-direction:column; padding:4vh 7vh; z-index:30; overflow:auto; }
+  #modal.on { display:flex; animation:up .22s ease-out; }
   @keyframes up { from { opacity:0; transform:translateY(2vh); } to { opacity:1; transform:none; } }
-  #modal h2 { font-size:3.2vh; font-weight:900; margin-bottom:2.2vh; letter-spacing:-.01em; }
-  #modal h2 small { font-size:1.8vh; color:var(--mut); font-weight:700; margin-left:1vh; }
-  #modal .x { position:fixed; right:4vh; top:3vh; width:6vh; height:6vh; border-radius:50%; background:var(--soft2); display:flex; align-items:center; justify-content:center; }
-  #modal .x svg { width:2.6vh; height:2.6vh; }
-  .item { display:flex; align-items:center; justify-content:space-between; gap:1.4vh; padding:1.9vh 2.2vh; background:var(--soft); border-radius:2.4vh; margin-bottom:1.1vh; font-weight:700; font-size:1.9vh; }
-  .item small { color:var(--mut); font-weight:600; display:block; margin-top:.3vh; font-size:1.55vh; }
-  .item b { font-size:2.2vh; }
-  .btn { padding:1.5vh 2.6vh; border-radius:99px; background:var(--soft2); font-weight:800; font-size:1.6vh; text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; }
+  #modal h2 { font-size:3.6vh; font-weight:900; margin-bottom:2.4vh; }
+  #modal h2 small { font-size:2.2vh; color:var(--mut); font-weight:700; margin-left:1vh; }
+  #modal .x { position:fixed; right:4vh; top:3vh; width:8vh; height:8vh; border-radius:50%; background:var(--soft2); display:flex; align-items:center; justify-content:center; }
+  #modal .x svg { width:3.2vh; height:3.2vh; }
+  .item { display:flex; align-items:center; justify-content:space-between; gap:1.6vh; padding:2vh 2.4vh; background:var(--soft); border-radius:2.6vh; margin-bottom:1.2vh; font-weight:700; font-size:2.3vh; }
+  .item small { color:var(--mut); font-weight:600; display:block; margin-top:.4vh; font-size:2vh; }
+  .item b { font-size:2.6vh; }
+  .btn { min-height:6.8vh; padding:0 3vh; border-radius:99px; background:var(--soft2); font-weight:800; font-size:2vh; text-transform:uppercase; letter-spacing:.05em; white-space:nowrap; }
   .btn.go { background:var(--ok); color:#022c22; } .btn.stop { background:#dc2626; color:#fff; } .btn.amb { background:rgba(251,191,36,.18); color:var(--amb); }
-  .row { display:flex; gap:1.2vh; }
+  .row { display:flex; gap:1.2vh; align-items:center; }
   .row > .btn { flex:1; }
-  input { background:var(--soft2); color:#fff; border-radius:1.6vh; padding:1.4vh 1.8vh; font:inherit; font-size:1.9vh; width:22vh; color-scheme:dark; }
-  .grid4 { display:grid; grid-template-columns:repeat(4,1fr); gap:1.2vh; }
-  .big { text-align:center; padding:2vh; background:var(--soft); border-radius:2.4vh; }
-  .big b { display:block; font-size:4vh; font-weight:900; }
-  .big small { font-size:1.3vh; letter-spacing:.16em; color:var(--mut); font-weight:800; text-transform:uppercase; }
-  .drawer { display:grid; grid-template-columns:repeat(6,1fr); gap:4vh 2vh; padding:2vh 0; }
-  .dr { display:flex; flex-direction:column; align-items:center; gap:1.2vh; font-size:1.65vh; font-weight:700; color:#e4e4e7; text-align:center; }
-  .dr img, .dr .fb { width:8vh; height:8vh; border-radius:2.2vh; }
-  .swatches { display:flex; gap:1.2vh; }
-  .sw { width:5.4vh; height:5.4vh; border-radius:1.6vh; background:var(--s); box-shadow:inset 0 0 0 2px #3f3f46; }
-  .sw.on { box-shadow:inset 0 0 0 4px var(--ok); }
-  .dtc { display:flex; gap:1.8vh; align-items:center; padding:1.8vh 2vh; background:var(--soft); border-radius:2vh; margin-bottom:1vh; }
-  .dtc b { font-size:2.4vh; font-weight:900; color:var(--amb); min-width:11vh; }
-  .dtc span { font-weight:600; color:#d4d4d8; font-size:1.8vh; }
+  input { background:var(--soft2); color:#fff; border-radius:1.8vh; padding:0 2vh; height:6.8vh; font:inherit; font-size:2.3vh; width:26vh; color-scheme:dark; }
+  .grid4 { display:grid; grid-template-columns:repeat(4,1fr); gap:1.4vh; }
+  .big { text-align:center; padding:2.2vh; background:var(--soft); border-radius:2.6vh; }
+  .big b { display:block; font-size:4.4vh; font-weight:900; }
+  .big small { font-size:1.9vh; letter-spacing:.12em; color:var(--mut); font-weight:800; text-transform:uppercase; }
+  .drawer { display:grid; grid-template-columns:repeat(6,1fr); gap:4.4vh 2vh; padding:1vh 0 3vh; }
+  .dr { display:flex; flex-direction:column; align-items:center; gap:1.3vh; font-size:2.1vh; font-weight:700; color:#e4e4e7; text-align:center; }
+  .dr img, .dr .fb { width:9.5vh; height:9.5vh; border-radius:2.6vh; }
+  .swatches { display:flex; gap:1.3vh; }
+  .sw { width:6.8vh; height:6.8vh; border-radius:2vh; background:var(--s); box-shadow:inset 0 0 0 2px #3f3f46; }
+  .sw.on { box-shadow:inset 0 0 0 5px var(--ok); }
+  .seg { display:flex; gap:.8vh; background:var(--soft); padding:.8vh; border-radius:99px; }
+  .seg button { min-height:5.6vh; padding:0 2.4vh; border-radius:99px; font-size:2vh; font-weight:800; color:var(--mut2); }
+  .seg button.on { background:#fff; color:#000; }
+  .dtc { display:flex; gap:2vh; align-items:center; padding:2vh 2.2vh; background:var(--soft); border-radius:2.2vh; margin-bottom:1.1vh; }
+  .dtc b { font-size:2.8vh; font-weight:900; color:var(--amb); min-width:12vh; }
+  .dtc span { font-weight:600; color:#d4d4d8; font-size:2.2vh; }
 
-  #toast { position:fixed; top:2vh; left:50%; transform:translate(-50%,-1vh); background:rgba(39,39,42,.95); padding:1.4vh 2.8vh; border-radius:99px; font-size:1.8vh; font-weight:800; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; z-index:60; display:flex; align-items:center; gap:1.3vh; white-space:nowrap; }
+  #toast { position:fixed; top:2vh; left:50%; transform:translate(-50%,-1vh); background:#27272a; padding:1.6vh 3vh; border-radius:99px; font-size:2.2vh; font-weight:800; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; z-index:60; display:flex; align-items:center; gap:1.4vh; white-space:nowrap; }
   #toast.on { opacity:1; transform:translate(-50%,0); }
-  #toast i { width:1.2vh; height:1.2vh; border-radius:50%; background:var(--ok); }
+  #toast i { width:1.4vh; height:1.4vh; border-radius:50%; background:var(--ok); }
   #toast.warn i { background:var(--amb); } #toast.err i { background:var(--bad); }
-  #night { position:fixed; inset:0; background:#000; opacity:0; pointer-events:none; transition:opacity .4s; z-index:40; }
+  #night { position:fixed; inset:0; background:#000; opacity:0; pointer-events:none; transition:opacity 1.2s; z-index:40; }
   #danger { position:fixed; inset:0; pointer-events:none; z-index:20; display:none; background:radial-gradient(circle,transparent 55%,rgba(239,68,68,.45) 100%); animation:pulse 1.2s infinite; }
   @keyframes pulse { 0%,100%{opacity:0} 50%{opacity:1} }
 </style>
@@ -157,43 +177,40 @@
   </div>
   <div class="hr">
     <button class="tap pill hbtn" onclick="saveParking()" data-ic="pin"><span id="parkLbl">Guardar parking</span></button>
-    <button class="tap hicon" onclick="toggleNight()" data-ic="moon" aria-label="Modo noche"></button>
+    <button class="tap hicon" id="nightBtn" onclick="cycleNight()" data-ic="moon" aria-label="Modo noche"></button>
     <div id="clock" class="mono">--:--</div>
   </div>
 </header>
 
 <main>
-  <!-- Izquierda: motor -->
+  <!-- Izquierda: velocidad + música -->
   <section class="col">
     <div class="gauge tap" onclick="openObd()">
       <svg viewBox="0 0 200 150">
-        <path d="M 25 130 A 80 80 0 1 1 175 130" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="11" stroke-linecap="round"/>
-        <path id="arc" d="M 25 130 A 80 80 0 1 1 175 130" fill="none" stroke="#10b981" stroke-width="11" stroke-linecap="round" stroke-dasharray="330" stroke-dashoffset="330" style="transition:stroke-dashoffset .3s,stroke .3s;filter:drop-shadow(0 0 6px currentColor)"/>
+        <path d="M 25 130 A 80 80 0 1 1 175 130" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="11" stroke-linecap="round"/>
+        <path id="arc" d="M 25 130 A 80 80 0 1 1 175 130" fill="none" stroke="#10b981" stroke-width="11" stroke-linecap="round" stroke-dasharray="330" stroke-dashoffset="330" style="transition:stroke-dashoffset .3s,stroke .3s"/>
       </svg>
       <div class="c">
         <div id="speed">0</div>
-        <div class="unit">km/h GPS</div>
-        <div id="rpm" class="mono">-- RPM</div>
+        <div class="unit">km/h</div>
       </div>
     </div>
-    <div class="tiles">
-      <div class="tile"><small>Agua</small><span id="temp" class="mono">--</span></div>
-      <div class="tile"><small>Batería</small><span id="volt" class="mono">--</span></div>
-      <div class="tile"><small>L/100</small><span id="cons" class="mono">--</span></div>
+    <div id="obdLine" class="mono">
+      <span><b id="rpm">--</b><small>rpm</small></span><span><b id="temp">--</b><small>agua</small></span><span><b id="volt">--</b><small>bat.</small></span><span id="consBox"><b id="cons">--</b><small>L/100</small></span>
     </div>
-    <button class="tap pill lnk" onclick="openObd()" data-ic="obd">Diagnóstico OBD</button>
+    <div class="np" id="np"></div>
   </section>
 
   <!-- Centro: el auto -->
   <section class="stage">
-    <div class="model">Toyota <b>Passo</b> · K3-VE 1.3</div>
+    <div class="model">Toyota <b>Passo</b> · 1.3 · 2004</div>
     <div class="car tap" id="car" onclick="openMaint()"></div>
     <div id="alerts"></div>
     <div class="stats">
-      <div class="stat"><small>Odómetro</small><b id="stOdo" class="mono">--</b></div>
-      <div class="stat"><small>Service</small><b id="stSvc" class="mono">--</b></div>
-      <div class="stat"><small>WoF</small><b id="stWof" class="mono">--</b></div>
-      <div class="stat"><small>Rego</small><b id="stRego" class="mono">--</b></div>
+      <button class="stat tap" onclick="openMaint()"><small>Odómetro</small><b id="stOdo" class="mono">--</b></button>
+      <button class="stat tap" onclick="openMaint()"><small>Service</small><b id="stSvc" class="mono">--</b></button>
+      <button class="stat tap" onclick="openMaint()"><small>WoF</small><b id="stWof" class="mono">--</b></button>
+      <button class="stat tap" onclick="openMaint()"><small>Rego</small><b id="stRego" class="mono">--</b></button>
     </div>
   </section>
 
@@ -205,9 +222,9 @@
 </main>
 
 <footer>
-  <button class="tap pill side" onclick="openSettings()" data-ic="palette">Ajustes launcher</button>
+  <button class="tap pill side" onclick="openSettings()" data-ic="palette">Ajustes</button>
   <div class="dock" id="dock"></div>
-  <button class="tap pill side" onclick="openAndroid()" data-ic="sliders">Ajustes Android</button>
+  <button class="tap pill side" onclick="openAndroid()" data-ic="sliders">Android</button>
 </footer>
 
 <div id="modal"><button class="x tap" onclick="closeModal()" data-ic="close" aria-label="Cerrar"></button><div id="modalBody"></div></div>
@@ -243,52 +260,62 @@ const ICONS = {
   globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
   video:'<rect x="3" y="6" width="13" height="12" rx="2.5"/><path d="m16 10 5-3v10l-5-3"/>'
 };
+const FILLED = {
+  prev:'<path d="M6 5h2.4v14H6zM20 5.6v12.8L9.6 12z"/>',
+  next:'<path d="M15.6 5H18v14h-2.4zM4 5.6v12.8L14.4 12z"/>',
+  play:'<path d="M7 4.5v15l13-7.5z"/>',
+  pause:'<path d="M6.5 4.5h4v15h-4zM13.5 4.5h4v15h-4z"/>'
+};
 const svg = k => `<svg class="i" viewBox="0 0 24 24">${ICONS[k]||ICONS.app}</svg>`;
+const fsvg = k => `<svg class="f" viewBox="0 0 24 24">${FILLED[k]}</svg>`;
 const $ = id => document.getElementById(id);
 
 /* ================= Estado persistente ================= */
+// Datos iniciales del Passo de Fran (oct 2026). Se corrigen desde Service.
+const ODO0 = 193080;
 const DEF = {
-  odo: 0,
+  odo: ODO0,
   maint: [
-    { name:'Aceite motor',  everyKm:5000,  lastKm:0 },
-    { name:'Filtro de aire',everyKm:15000, lastKm:0 },
-    { name:'Bujías',        everyKm:40000, lastKm:0 },
-    { name:'Frenos (revisar)', everyKm:10000, lastKm:0 },
-    { name:'ATF (aceite de caja)', everyKm:40000, lastKm:0 }
+    { name:'Aceite motor',         everyKm:5000,  lastKm:ODO0-5000 },  // sin historial: arranca como "a hacer"
+    { name:'ATF (aceite de caja)', everyKm:40000, lastKm:ODO0-40000 }, // plan: 3 cambios seguidos
+    { name:'Correa poly-V',        everyKm:60000, lastKm:ODO0-60000 },
+    { name:'Filtro de aire',       everyKm:15000, lastKm:ODO0 },
+    { name:'Bujías',               everyKm:40000, lastKm:ODO0 },
+    { name:'Frenos (revisar)',     everyKm:10000, lastKm:ODO0 }
   ],
-  dates: [ { name:'WOF', due:'' }, { name:'Rego', due:'' } ],
+  dates: [ { name:'WOF', due:'2027-07-01' }, { name:'Rego', due:'2027-06-27' } ],
   fuel: [], parking: null, shift: null, obdAddr: '',
-  mono: false, greet: 'Hola, Fran', bg: '#000000', acc: '#10b981', side: 'rhd',
+  mono: false, greet: 'Hola, Fran', bg: '#000000', acc: '#10b981', side: 'rhd', night: 'auto',
   apps: [
     { n:'Maps',    ic:'map',   c:'#34d399', pkg:'com.google.android.apps.maps' },
     { n:'Waze',    ic:'nav',   c:'#38bdf8', pkg:'com.waze' },
-    { n:'Uber',    ic:'car',   c:'#e4e4e7', pkg:'com.ubercab.driver' },
-    { n:'DiDi',    ic:'bag',   c:'#fb923c', pkg:'com.didiglobal.driver' },
     { n:'Spotify', ic:'music', c:'#4ade80', pkg:'com.spotify.music' },
-    { n:'YT Music',ic:'play',  c:'#f87171', pkg:'com.google.android.apps.youtube.music' }
+    { n:'YT Music',ic:'play',  c:'#f87171', pkg:'com.google.android.apps.youtube.music' },
+    { n:'Uber',    ic:'car',   c:'#e4e4e7', pkg:'com.ubercab.driver' },
+    { n:'DiDi',    ic:'bag',   c:'#fb923c', pkg:'com.didiglobal.driver' }
   ],
   dock: [
-    { n:'CarPlay', ic:'cast',  c:'#e4e4e7', pkg:'com.zjinnova.zlink' },
-    { n:'Claude',  ic:'spark', c:'#fb923c', pkg:'com.anthropic.claude' },
-    { n:'ChatGPT', ic:'chat',  c:'#34d399', pkg:'com.openai.chatgpt' },
-    { n:'Gemini',  ic:'star',  c:'#38bdf8', pkg:'com.google.android.apps.bard' },
+    { n:'CarPlay',  ic:'cast',  c:'#fff',    pkg:'com.zjinnova.zlink', main:true },
+    { n:'Teléfono', ic:'phone', c:'#34d399', pkg:'com.syu.bt' },
+    { n:'Radio',    ic:'radio', c:'#fbbf24', pkg:'com.syu.radio' },
     { n:'Android Auto', ic:'car', c:'#67e8f9', pkg:'com.google.android.projection.gearhead' }
   ],
   drawer: [
-    { n:'Radio',      ic:'radio', c:'#fbbf24', pkg:'com.syu.radio' },
-    { n:'Teléfono',   ic:'phone', c:'#34d399', pkg:'com.syu.bt' },
+    { n:'Claude',     ic:'spark', c:'#fb923c', pkg:'com.anthropic.claude' },
+    { n:'ChatGPT',    ic:'chat',  c:'#34d399', pkg:'com.openai.chatgpt' },
+    { n:'Gemini',     ic:'star',  c:'#38bdf8', pkg:'com.google.android.apps.bard' },
+    { n:'Kimi',       ic:'bolt',  c:'#c084fc', pkg:'com.moonshot.kimichat' },
     { n:'YouTube',    ic:'video', c:'#f87171', pkg:'com.google.android.youtube' },
     { n:'Chrome',     ic:'globe', c:'#38bdf8', pkg:'com.android.chrome' },
     { n:'Play Store', ic:'store', c:'#4ade80', pkg:'com.android.vending' },
-    { n:'Kimi',       ic:'bolt',  c:'#c084fc', pkg:'com.moonshot.kimichat' },
     { n:'Torque',     ic:'obd',   c:'#fb923c', pkg:'org.prowl.torque' },
     { n:'Netflix',    ic:'play',  c:'#ef4444', pkg:'com.netflix.mediaclient' }
   ]
 };
 let S;
 try { S = Object.assign({}, DEF, JSON.parse(localStorage.getItem('passo')||'{}')); } catch(e){ S = {...DEF}; }
-['dock','drawer'].forEach(k=>{ if(!Array.isArray(S[k])) S[k]=DEF[k]; });
-if (!S.maint.some(m=>/ATF/.test(m.name))) S.maint.push({...DEF.maint[4]});
+['dock','drawer','apps','maint','dates'].forEach(k=>{ if(!Array.isArray(S[k])) S[k]=DEF[k]; });
+DEF.maint.forEach(d=>{ if(!S.maint.some(m=>m.name===d.name)) S.maint.push({...d}); });
 const save = () => { try{ localStorage.setItem('passo', JSON.stringify(S)); }catch(e){} };
 let carPhoto = null; try { carPhoto = localStorage.getItem('passoCarPhoto'); } catch(e){}
 
@@ -296,11 +323,11 @@ let carPhoto = null; try { carPhoto = localStorage.getItem('passoCarPhoto'); } c
 function tick(){ const d=new Date(); $('clock').textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
 tick(); setInterval(tick,1000);
 
-/* ================= El auto (foto incluida en el APK o foto propia) ================= */
+/* ================= El auto (foto incluida o foto propia) ================= */
 function renderCar(){
   $('car').innerHTML = carPhoto
     ? `<img class="own" src="${carPhoto}" alt="Mi Passo">`
-    : `<img class="cut" src="img/passo.webp" onerror="this.onerror=null;this.src='img/passo.png'" alt="Toyota Passo"><div class="floor"></div>`;
+    : `<img src="img/passo.webp" onerror="this.onerror=null;this.src='img/passo.png'" alt="Toyota Passo"><div class="floor"></div>`;
 }
 function pickCarPhoto(){
   const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
@@ -315,7 +342,14 @@ function pickCarPhoto(){
 }
 function clearCarPhoto(){ carPhoto=null; try{ localStorage.removeItem('passoCarPhoto'); }catch(e){} renderCar(); openSettings(); }
 
-/* ================= Lanzar apps (nativo vía Capacitor) ================= */
+/* ================= Plugins nativos ================= */
+function plugin(name){
+  const C = window.Capacitor;
+  if (!C || !C.isNativePlatform || !C.isNativePlatform()) return null;
+  return (C.Plugins && C.Plugins[name]) || (C.registerPlugin ? C.registerPlugin(name) : null);
+}
+
+/* ================= Lanzar apps ================= */
 function openApp(pkg){
   const AL = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AppLauncher;
   if (AL) AL.openUrl({ url: pkg }).catch(()=>toast('No está instalada: '+pkg,'warn'));
@@ -325,13 +359,8 @@ function openAndroid(){ openApp('com.android.settings'); }
 
 let realIcons = {};
 try { realIcons = JSON.parse(localStorage.getItem('passoIcons')||'{}'); } catch(e){}
-function iconPlugin(){
-  const C = window.Capacitor;
-  if (!C || !C.isNativePlatform || !C.isNativePlatform()) return null;
-  return (C.Plugins && C.Plugins.AppIcons) || (C.registerPlugin ? C.registerPlugin('AppIcons') : null);
-}
 async function loadIcons(){
-  const P = iconPlugin(); if (!P) return;
+  const P = plugin('AppIcons'); if (!P) return;
   try {
     const r = await P.get({ packages: [...S.apps, ...S.dock, ...S.drawer].map(a=>a.pkg) });
     realIcons = r.icons || {};
@@ -344,7 +373,7 @@ function renderApps(){
   document.body.classList.toggle('mono-ic', !!S.mono);
   $('apps').innerHTML = S.apps.map(a=>`<button class="app tap" onclick="openApp('${a.pkg}')"><span class="ico">${icoHTML(a)}</span>${a.n}</button>`).join('');
   const half = Math.ceil(S.dock.length/2);
-  const dk = a => `<button class="dk tap" style="--c:${a.c}" onclick="openApp('${a.pkg}')">${realIcons[a.pkg]?`<img src="${realIcons[a.pkg]}" alt="">`:svg(a.ic)}${a.n}</button>`;
+  const dk = a => `<button class="dk tap ${a.main?'main':''}" style="--c:${a.c}" onclick="openApp('${a.pkg}')">${realIcons[a.pkg]?`<img src="${realIcons[a.pkg]}" alt="">`:svg(a.ic)}${a.n}</button>`;
   $('dock').innerHTML = S.dock.slice(0,half).map(dk).join('') +
     `<button class="allapps tap" onclick="openDrawer()" aria-label="Todas las apps">${svg('grid')}</button>` +
     S.dock.slice(half).map(dk).join('');
@@ -355,6 +384,61 @@ function openDrawer(){
     `<button class="dr tap" onclick="closeModal();openAndroid()"><span class="fb" style="--c:#a1a1aa">${svg('sliders')}</span>Ajustes Android</button></div>`);
 }
 document.querySelectorAll('[data-ic]').forEach(b=>b.insertAdjacentHTML('afterbegin', svg(b.dataset.ic)));
+
+/* ================= Música: lo que suena ahora ================= */
+const media = { active:false, title:'', artist:'', art:'', playing:false, pos:0, dur:0, pkg:'', noAccess:false };
+const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function musicPkg(){ return media.pkg || (S.apps.find(a=>a.ic==='music')||S.apps[0]).pkg; }
+function renderNp(){
+  const np=$('np'), P=plugin('Media');
+  if (P && media.noAccess) {
+    np.innerHTML = `<div class="art">${svg('music')}</div><div class="meta"><div class="t">Música</div><div class="a">Falta un permiso</div></div>
+      <button class="perm tap" onclick="askMediaAccess()">Activar control de música</button>`;
+    return;
+  }
+  const pct = media.dur>0 ? Math.min(100, media.pos/media.dur*100) : 0;
+  np.innerHTML = `
+    <button class="art tap" onclick="openApp(musicPkg())" style="${media.art?`background-image:url(${media.art})`:''}">${media.art?'':svg('music')}</button>
+    <button class="meta tap" style="text-align:left" onclick="openApp(musicPkg())">
+      <div class="t">${media.active && media.title ? esc(media.title) : 'Nada sonando'}</div>
+      <div class="a">${media.active ? esc(media.artist||'') : 'Tocá para abrir la música'}</div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+    </button>
+    <div class="ctl">
+      <button class="tap" onclick="mediaCtl('prev')" aria-label="Anterior">${fsvg('prev')}</button>
+      <button class="tap pp" onclick="mediaCtl('toggle')" aria-label="Play o pausa">${fsvg(media.playing?'pause':'play')}</button>
+      <button class="tap" onclick="mediaCtl('next')" aria-label="Siguiente">${fsvg('next')}</button>
+    </div>`;
+}
+async function pollMedia(){
+  const P=plugin('Media'); if(!P) return;
+  try {
+    const r = await P.get({ known: media.title });
+    const key = () => JSON.stringify([media.active,media.title,media.artist,media.playing,media.noAccess,media.art.length]);
+    const before = key();
+    media.noAccess = !!r.noAccess; media.active = !!r.active;
+    if (r.active) {
+      if (r.art !== undefined) media.art = r.art || '';
+      media.title = r.title||''; media.artist = r.artist||''; media.playing = !!r.playing;
+      media.pos = r.position||0; media.dur = r.duration||0; media.pkg = r.pkg||'';
+    }
+    if (before!==key()) renderNp();
+    else { const bar=document.querySelector('.np .bar i'); if(bar && media.dur>0) bar.style.width=Math.min(100,media.pos/media.dur*100)+'%'; }
+  } catch(e){}
+}
+async function mediaCtl(a){
+  const P=plugin('Media');
+  if(!P){ toast('Controles de música solo en la APK','warn'); return; }
+  if(media.noAccess){ askMediaAccess(); return; }
+  try { await P.control({ action:a }); setTimeout(pollMedia,300); }
+  catch(e){ openApp(musicPkg()); }
+}
+function askMediaAccess(){
+  const P=plugin('Media'); if(!P) return;
+  toast('Activá "Passo Launcher" en la lista y volvé');
+  P.requestAccess();
+}
+setInterval(pollMedia, 1000);
 
 /* ================= Aviso flotante ================= */
 let tt; function toast(m, kind){
@@ -373,9 +457,43 @@ function applyLook(){
   document.querySelector('main').classList.toggle('lhd', S.side==='lhd');
 }
 
+/* ================= Modo noche: automático con la puesta del sol ================= */
+function sunTimes(date, lat, lon){
+  const rad=Math.PI/180, J = date.getTime()/864e5 + 2440587.5;
+  const n = Math.round(J - 2451545.0 + 0.0008), Js = n - lon/360;
+  const M = (357.5291 + 0.98560028*Js) % 360;
+  const C = 1.9148*Math.sin(M*rad) + 0.02*Math.sin(2*M*rad) + 0.0003*Math.sin(3*M*rad);
+  const L = (M + C + 180 + 102.9372) % 360;
+  const Jt = 2451545 + Js + 0.0053*Math.sin(M*rad) - 0.0069*Math.sin(2*L*rad);
+  const d = Math.asin(Math.sin(L*rad)*Math.sin(23.4397*rad));
+  const w = Math.acos((Math.sin(-0.833*rad) - Math.sin(lat*rad)*Math.sin(d)) / (Math.cos(lat*rad)*Math.cos(d))) / rad;
+  const toDate = j => new Date((j - 2440587.5)*864e5);
+  return { rise: toDate(Jt - w/360), set: toDate(Jt + w/360) };
+}
+function isDark(){
+  const lat = gpsLast ? gpsLast.lat : -36.80, lon = gpsLast ? gpsLast.lon : 175.10; // por defecto, Waiheke
+  const now = new Date(), t = sunTimes(now, lat, lon);
+  return now < new Date(t.rise.getTime()+20*6e4) || now > new Date(t.set.getTime()-10*6e4);
+}
+function applyNight(){
+  const on = S.night==='on' || (S.night==='auto' && isDark());
+  $('night').style.opacity = on ? .45 : 0;
+  $('nightBtn').classList.toggle('on', on);
+}
+function cycleNight(){
+  S.night = S.night==='auto' ? 'on' : S.night==='on' ? 'off' : 'auto'; save(); applyNight();
+  toast('Modo noche: '+({auto:'automático',on:'siempre',off:'apagado'})[S.night]);
+}
+setInterval(applyNight, 60000);
+
 /* ================= GPS real: velocidad + km ================= */
 let gpsLast=null, speedKmh=0;
 function hav(a,b,c,d){ const R=6371,r=x=>x*Math.PI/180; const dl=r(c-a),dn=r(d-b); const h=Math.sin(dl/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(dn/2)**2; return 2*R*Math.asin(Math.sqrt(h)); }
+function showSpeed(){
+  const v = Math.round(speedKmh<3?0:speedKmh);
+  $('speed').textContent = v;
+  if (!obd.ok) { const arc=$('arc'); arc.style.strokeDashoffset = 330-330*Math.min(1,v/120); arc.setAttribute('stroke', S.acc||'#10b981'); }
+}
 if (navigator.geolocation) {
   navigator.geolocation.watchPosition(p=>{
     const c=p.coords;
@@ -384,7 +502,7 @@ if (navigator.geolocation) {
       if (gpsLast) { const d=hav(gpsLast.lat,gpsLast.lon,c.latitude,c.longitude); if (d>0.005 && d<1) { S.odo+=d; } }
       gpsLast={lat:c.latitude,lon:c.longitude};
     }
-    $('speed').textContent=Math.round(speedKmh<3?0:speedKmh);
+    showSpeed();
   }, ()=>{}, { enableHighAccuracy:true, maximumAge:1000, timeout:10000 });
 }
 setInterval(save,15000);
@@ -478,7 +596,7 @@ async function scanDtc(){
   const resp = await cmd('03', 8000);
   const codes = parseDtcResponse(resp);
   if (codes === null) {
-    $('dtcBox').innerHTML = `<div class="item"><span>La ECU no respondió al pedido de códigos<small>Respuesta: ${resp.replace(/[\r\n>]+/g,' ').trim().slice(0,60)||'(vacía)'}. Probá con el motor en contacto.</small></span></div>`;
+    $('dtcBox').innerHTML = `<div class="item"><span>La ECU no respondió al pedido de códigos<small>Respuesta: ${esc(resp.replace(/[\r\n>]+/g,' ').trim().slice(0,60))||'(vacía)'}. Probá con el motor en contacto.</small></span></div>`;
     return;
   }
   S.lastScan = { t:Date.now(), codes }; save();
@@ -490,7 +608,7 @@ function renderDtc(){
   box.innerHTML = s.codes.length
     ? s.codes.map(c=>`<div class="dtc"><b>${c}</b><span>${dtcDesc(c)}</span></div>`).join('') +
       `<div class="item"><span>Borrar códigos<small>Apaga el check engine, pero no arregla la causa: si la falla sigue, el código vuelve.</small></span><button class="btn stop tap" onclick="clearDtc()">Borrar</button></div>` +
-      `<small style="color:var(--mut)">Escaneo: ${when}</small>`
+      `<small style="color:var(--mut);font-size:2vh">Escaneo: ${when}</small>`
     : `<div class="item"><span>Sin códigos de falla guardados<small>Escaneo: ${when}</small></span></div>`;
 }
 async function clearDtc(){
@@ -513,29 +631,29 @@ function startSim(){
   obd.sim=true; clearInterval(pollTimer);
   let t=0; pollTimer=setInterval(()=>{ t+=0.1;
     obd.rpm=1200+Math.abs(Math.sin(t))*2200; obd.temp=Math.min(91,60+t*2); obd.volt=14.1-Math.random()*.1; obd.maf=3+Math.abs(Math.sin(t))*8; obd.ok=true;
-    if(!gpsLast){ speedKmh=Math.abs(Math.sin(t))*80; $('speed').textContent=Math.round(speedKmh); }
+    if(!gpsLast){ speedKmh=Math.abs(Math.sin(t))*80; showSpeed(); }
     renderObd();
   },400); closeModal();
 }
 function renderObd(){
   const rpm=obd.rpm, t=obd.temp, v=obd.volt;
-  $('rpm').textContent = rpm!=null ? Math.round(rpm)+' RPM' : '-- RPM';
+  $('obdLine').classList.toggle('on', !!obd.ok);
+  $('rpm').textContent = rpm!=null ? Math.round(rpm) : '--';
   $('temp').textContent = t!=null ? Math.round(t)+'°' : '--';
-  $('volt').innerHTML = v!=null ? v.toFixed(1)+'<small>V</small>' : '--';
-  let c='--';
+  $('volt').textContent = v!=null ? v.toFixed(1)+'V' : '--';
+  let c=null;
   if (obd.maf!=null && speedKmh>8) { const lph=obd.maf/(14.7*740)*3600; c=(lph/speedKmh*100).toFixed(1); }
-  $('cons').textContent=c;
-  const arc=$('arc'); const frac=Math.min(1,(rpm||0)/6500);
-  arc.style.strokeDashoffset = 330-330*frac;
+  $('cons').textContent = c || '--'; $('consBox').style.display = obd.maf!=null ? '' : 'none';
   const hot=t!=null&&t>=100, lowV=v!=null&&v<12.0, cold=t!=null&&t<60;
-  const col = hot?'#ef4444': cold?'#38bdf8': (S.acc||'#10b981');
-  arc.setAttribute('stroke', col); arc.style.color = col;
+  if (obd.ok) {
+    const arc=$('arc'); arc.style.strokeDashoffset = 330-330*Math.min(1,(rpm||0)/6500);
+    arc.setAttribute('stroke', hot?'#ef4444': cold?'#38bdf8': (S.acc||'#10b981'));
+  }
   $('danger').style.display = hot?'block':'none';
   const b=$('badge');
   b.className='tap'+(hot?' bad':cold?' cold':'');
-  $('badgeTxt').textContent = obd.sim?'Demo': !obd.ok?'Sin OBD': hot?'Temp '+Math.round(t)+'°': obd.mil?'Check engine'+(obd.dtcCount?' ('+obd.dtcCount+')':''): cold?'Motor frío · '+Math.round(t)+'°':'Motor óptimo · '+Math.round(t)+'°';
-  if(obd.sim) b.classList.add('sim');
-  if(!obd.ok && !obd.sim) b.classList.add('sim');
+  $('badgeTxt').textContent = obd.sim?'Demo OBD': !obd.ok?'Sin OBD': hot?'Temp '+Math.round(t)+'°': obd.mil?'Check engine'+(obd.dtcCount?' ('+obd.dtcCount+')':''): cold?'Motor frío · '+Math.round(t)+'°':'Motor óptimo · '+Math.round(t)+'°';
+  if(obd.sim || !obd.ok) b.classList.add('sim');
   if(obd.mil && !hot && !obd.sim) b.className='tap bad';
   refreshAlerts(hot,lowV);
 }
@@ -547,13 +665,16 @@ function refreshAlerts(hot,lowV){
   const a=[];
   if(hot) a.push(['Motor recalentado: parate','r']);
   if(lowV) a.push(['Batería baja (menos de 12 V)','r']);
-  S.maint.forEach(m=>{ const left=m.everyKm-(S.odo-m.lastKm); if(left<=0) a.push([m.name+' vencido','r']); else if(left<500) a.push([m.name+' en '+Math.round(left)+' km','']); });
+  const due = S.maint.filter(m=>m.everyKm-(S.odo-m.lastKm)<=0);
+  if (due.length===1) a.push([due[0].name+': hacer','']);
+  else if (due.length>1) a.push([due.length+' tareas de service pendientes','']);
+  S.maint.forEach(m=>{ const left=m.everyKm-(S.odo-m.lastKm); if(left>0 && left<500) a.push([m.name+' en '+Math.round(left)+' km','']); });
   S.dates.forEach(d=>{ const days=daysTo(d.due); if(days==null) return; if(days<0) a.push([d.name+' vencido','r']); else if(days<=30) a.push([d.name+' en '+days+' días','']); });
-  $('alerts').innerHTML = a.slice(0,3).map(x=>`<span class="${x[1]}">${x[0]}</span>`).join('');
-  // tarjetas bajo el auto
-  $('stOdo').textContent = S.odo>0 ? fmtKm(S.odo)+' km' : 'Cargar';
-  const next = S.maint.map(m=>({n:m.name, left:m.everyKm-(S.odo-m.lastKm)})).sort((x,y)=>x.left-y.left)[0];
-  const sv=$('stSvc'); sv.textContent = next.left<=0 ? 'Vencido' : fmtKm(next.left)+' km'; sv.className='mono '+(next.left<=0?'bad':next.left<500?'warn':'good');
+  $('alerts').innerHTML = a.slice(0,2).map(x=>`<span class="${x[1]}">${x[0]}</span>`).join('');
+  $('stOdo').textContent = fmtKm(S.odo)+' km';
+  const pend = S.maint.filter(m=>m.everyKm-(S.odo-m.lastKm)<=0).length;
+  const next = S.maint.map(m=>m.everyKm-(S.odo-m.lastKm)).sort((x,y)=>x-y)[0];
+  const sv=$('stSvc'); sv.textContent = pend ? pend+' a hacer' : fmtKm(next)+' km'; sv.className='mono '+(pend?'warn':next<500?'warn':'good');
   [['stWof',0],['stRego',1]].forEach(([id,i])=>{ const d=daysTo(S.dates[i]&&S.dates[i].due), el=$(id);
     el.textContent = d==null ? 'Cargar' : d<0 ? 'Vencido' : d+' días';
     el.className = 'mono '+(d==null?'':d<0?'bad':d<=30?'warn':'good'); });
@@ -579,16 +700,16 @@ function showShiftSummary(s){
     <div class="big"><b class="mono">$${(s.money/Math.max(h,.01)).toFixed(0)}</b><small>Por hora</small></div></div>`);
 }
 function openShift(){
+  const work = S.apps.filter(a=>a.ic==='car'||a.ic==='bag').slice(0,2);
   openModal(`<h2>Modo trabajo <small>delivery</small></h2>
-    <div class="grid4" style="margin-bottom:1.4vh">
+    <div class="grid4" style="margin-bottom:1.6vh">
       <div class="big"><b class="mono" id="shTime">0:00</b><small>Tiempo</small></div>
       <div class="big"><b class="mono" id="shKm">0.0</b><small>Km</small></div>
       <div class="big"><b class="mono" id="shMoney">$0</b><small>Ganado</small></div>
       <div class="big"><b class="mono" id="shTrips">0</b><small>Pedidos</small></div>
       <div class="big"><b class="mono" id="shHr">$0</b><small>Por hora</small></div>
       <div class="big"><b class="mono" id="shKmM">$0.00</b><small>Por km</small></div>
-      <button class="big tap" onclick="closeModal();openApp(S.apps[2].pkg)"><b style="font-size:2.6vh">${S.apps[2].n}</b><small>Abrir</small></button>
-      <button class="big tap" onclick="closeModal();openApp(S.apps[3].pkg)"><b style="font-size:2.6vh">${S.apps[3].n}</b><small>Abrir</small></button>
+      ${work.map(a=>`<button class="big tap" onclick="closeModal();openApp('${a.pkg}')"><b style="font-size:3vh">${a.n}</b><small>Abrir</small></button>`).join('')}
     </div>
     <div class="row"><button class="btn tap" id="shBtn" onclick="toggleShift()">Iniciar turno</button><button class="btn amb tap" onclick="addTrip()">+ Pedido</button></div>`);
   renderShift();
@@ -625,8 +746,8 @@ function closeModal(){ $('modal').classList.remove('on'); refreshAlerts(); }
 function openMaint(){
   openModal(`<h2>Service <small>odómetro ${fmtKm(S.odo)} km</small></h2>
     <div class="item"><span>Corregir odómetro<small>Poné los km que marca el tablero</small></span><span class="row"><input id="odoIn" type="number" value="${Math.round(S.odo)}"><button class="btn amb tap" onclick="S.odo=+$('odoIn').value;save();openMaint()">OK</button></span></div>`+
-    S.maint.map((m,i)=>{ const left=Math.round(m.everyKm-(S.odo-m.lastKm)); return `<div class="item"><span>${m.name}<small>${left>0?'Faltan '+fmtKm(left)+' km':'Vencido hace '+fmtKm(-left)+' km'} (cada ${fmtKm(m.everyKm)} km)</small></span><button class="btn go tap" onclick="S.maint[${i}].lastKm=S.odo;save();openMaint()">Hecho hoy</button></div>`; }).join('')+
-    S.dates.map((d,i)=>`<div class="item"><span>${d.name}<small>Fecha de vencimiento</small></span><input type="date" value="${d.due}" onchange="S.dates[${i}].due=this.value;save()"></div>`).join('')+
+    S.maint.map((m,i)=>{ const left=Math.round(m.everyKm-(S.odo-m.lastKm)); return `<div class="item"><span>${m.name}<small>${left>0?'Faltan '+fmtKm(left)+' km':'A hacer (sin registro o vencido)'} · cada ${fmtKm(m.everyKm)} km</small></span><button class="btn go tap" onclick="S.maint[${i}].lastKm=S.odo;save();openMaint()">Hecho hoy</button></div>`; }).join('')+
+    S.dates.map((d,i)=>`<div class="item"><span>${d.name}<small>Vence</small></span><input type="date" value="${d.due}" onchange="S.dates[${i}].due=this.value;save()"></div>`).join('')+
     `<div class="row" style="margin-top:1vh"><button class="btn tap" onclick="openFuel()">Registro de nafta</button></div>`);
 }
 function openFuel(){
@@ -641,52 +762,52 @@ function addFuel(full){ const l=parseFloat($('fl').value); if(!(l>0)) return; S.
 
 function openObd(){
   let body=`<h2>OBD2 <small>K3-VE</small></h2>
-    <div class="grid4" style="margin-bottom:1.4vh">
+    <div class="grid4" style="margin-bottom:1.6vh">
       <div class="big"><b class="mono">${obd.temp!=null?Math.round(obd.temp)+'°':'--'}</b><small>Agua</small></div>
       <div class="big"><b class="mono">${obd.volt!=null?obd.volt.toFixed(1)+' V':'--'}</b><small>Batería</small></div>
       <div class="big"><b class="mono">${obd.iat!=null?Math.round(obd.iat)+'°':'--'}</b><small>Admisión</small></div>
       <div class="big"><b class="mono">${obd.mil==null?'--':obd.mil?'ON':'OFF'}</b><small>Check engine</small></div>
     </div>
-    <div class="item"><span>MAF<small>Si el auto no lo reporta, L/100 queda en --</small></span><b class="mono">${obd.maf!=null?obd.maf.toFixed(1)+' g/s':'no disponible'}</b></div>
-    <div class="row" style="margin:1.2vh 0"><button class="btn go tap" onclick="scanDtc()">Escanear códigos de falla</button><button class="btn amb tap" onclick="startSim()">Modo demo</button></div>
+    <div class="item"><span>MAF<small>Si el auto no lo reporta, el consumo instantáneo no aparece</small></span><b class="mono">${obd.maf!=null?obd.maf.toFixed(1)+' g/s':'no disponible'}</b></div>
+    <div class="row" style="margin:1.4vh 0"><button class="btn go tap" onclick="scanDtc()">Escanear códigos de falla</button><button class="btn amb tap" onclick="startSim()">Modo demo</button></div>
     <div id="dtcBox"></div>`;
-  if(BT){ body+=`<h2 style="margin-top:1.6vh">Adaptadores emparejados</h2><div id="btList">Buscando…</div>`; }
+  if(BT){ body+=`<h2 style="margin-top:1.8vh">Adaptadores emparejados</h2><div id="btList">Buscando…</div>`; }
   else body+=`<div class="item">La conexión Bluetooth funciona solo dentro de la APK.</div>`;
   openModal(body);
   renderDtc();
-  if(BT) BT.list(l=>{ $('btList').innerHTML = l.length? l.map(d=>`<div class="item"><span>${d.name||'(sin nombre)'}<small>${d.address}</small></span><button class="btn go tap" onclick="connectObd('${d.address}')">Conectar</button></div>`).join('') : 'Emparejá primero el ELM327 en Ajustes de Android (PIN 1234 o 0000).'; }, ()=>{ $('btList').textContent='Error leyendo Bluetooth'; });
+  if(BT) BT.list(l=>{ $('btList').innerHTML = l.length? l.map(d=>`<div class="item"><span>${esc(d.name||'(sin nombre)')}<small>${d.address}</small></span><button class="btn go tap" onclick="connectObd('${d.address}')">Conectar</button></div>`).join('') : '<div class="item">Emparejá primero el ELM327 en Ajustes de Android (PIN 1234 o 0000).</div>'; }, ()=>{ $('btList').textContent='Error leyendo Bluetooth'; });
 }
-function setLook(k,v){ S[k]=v; save(); applyLook(); renderCar(); renderObd(); openSettings(); }
+function setLook(k,v){ S[k]=v; save(); applyLook(); showSpeed(); renderObd(); openSettings(); }
 function editGreet(){ const g=prompt('Saludo (dejalo vacío para ocultarlo)', S.greet||''); if(g!==null) setLook('greet', g.trim()); }
 function openSettings(){
   const sw=(list,key)=>`<span class="swatches">${list.map(b=>`<button class="sw tap ${S[key]===b[0]?'on':''}" style="--s:${b[0]}" onclick="setLook('${key}','${b[0]}')" aria-label="${b[1]}"></button>`).join('')}</span>`;
   const appRow=(k)=>(a,i)=>`<div class="item"><span>${a.n}<small>${a.pkg}${realIcons[a.pkg]?'':' · no instalada o sin detectar'}</small></span><button class="btn tap" onclick="editApp('${k}',${i})">Cambiar</button></div>`;
+  const P=plugin('Media');
   openModal(`<h2>Ajustes del launcher</h2>`+
-    `<div class="item"><span>Foto del auto<small>${carPhoto?'Usando tu foto':'Passo 2004 gris (incluido)'}</small></span><span class="row"><button class="btn go tap" onclick="pickCarPhoto()">Elegir foto</button>${carPhoto?`<button class="btn tap" onclick="clearCarPhoto()">Volver al original</button>`:''}</span></div>`+
-    `<div class="item"><span>Saludo<small>${S.greet||'(oculto)'}</small></span><button class="btn tap" onclick="editGreet()">Cambiar</button></div>`+
+    `<div class="item"><span>Foto del auto<small>${carPhoto?'Usando tu foto':'Passo 2004 gris (incluida)'}</small></span><span class="row"><button class="btn go tap" onclick="pickCarPhoto()">Elegir foto</button>${carPhoto?`<button class="btn tap" onclick="clearCarPhoto()">Volver a la original</button>`:''}</span></div>`+
+    `<div class="item"><span>Control de música<small>${!P?'Disponible en la APK':media.noAccess?'Falta permiso de acceso a notificaciones':'Activo'}</small></span>${P?`<button class="btn tap" onclick="askMediaAccess()">Permiso</button>`:''}</div>`+
+    `<div class="item"><span>Modo noche<small>Automático: se oscurece con la puesta del sol</small></span><span class="seg">${[['auto','Auto'],['on','Siempre'],['off','Apagado']].map(([k,l])=>`<button class="tap ${S.night===k?'on':''}" onclick="S.night='${k}';save();applyNight();openSettings()">${l}</button>`).join('')}</span></div>`+
+    `<div class="item"><span>Saludo<small>${esc(S.greet||'(oculto)')}</small></span><button class="btn tap" onclick="editGreet()">Cambiar</button></div>`+
     `<div class="item"><span>Color de acento<small>${(ACCS.find(b=>b[0]===S.acc)||ACCS[0])[1]}</small></span>${sw(ACCS,'acc')}</div>`+
     `<div class="item"><span>Fondo<small>${(BGS.find(b=>b[0]===S.bg)||BGS[0])[1]}</small></span>${sw(BGS,'bg')}</div>`+
     `<div class="item"><span>Lado del volante<small>${S.side==='lhd'?'Izquierda: apps a la izquierda':'Derecha (Passo japonés): apps cerca tuyo'}</small></span><button class="btn tap" onclick="setLook('side','${S.side==='lhd'?'rhd':'lhd'}')">Invertir</button></div>`+
     `<div class="item"><span>Íconos de apps<small>${S.mono?'Monocromo':'Color original'}</small></span><button class="btn tap" onclick="S.mono=!S.mono;save();renderApps();openSettings()">${S.mono?'Pasar a color':'Pasar a monocromo'}</button></div>`+
-    `<h2 style="margin-top:1.6vh">Apps de la derecha</h2>`+ S.apps.map(appRow('apps')).join('')+
-    `<h2 style="margin-top:1.6vh">Dock de abajo</h2>`+ S.dock.map(appRow('dock')).join('')+
-    `<h2 style="margin-top:1.6vh">Más apps</h2>`+ S.drawer.map(appRow('drawer')).join('')+
+    `<h2 style="margin-top:1.8vh">Apps de la derecha</h2>`+ S.apps.map(appRow('apps')).join('')+
+    `<h2 style="margin-top:1.8vh">Dock de abajo</h2>`+ S.dock.map(appRow('dock')).join('')+
+    `<h2 style="margin-top:1.8vh">Más apps</h2>`+ S.drawer.map(appRow('drawer')).join('')+
     `<div class="item"><span>Adaptador OBD guardado<small>${S.obdAddr||'ninguno'}</small></span>${S.obdAddr?`<button class="btn go tap" onclick="connectObd(S.obdAddr)">Reconectar</button>`:''}</div>`);
 }
 function editApp(k,i){
   const a=S[k][i];
   const n=prompt('Nombre del botón', a.n); if(n===null) return;
   const p=prompt('Paquete Android (ej. com.spotify.music)', a.pkg); if(p===null) return;
-  a.n=n.trim()||a.n; a.pkg=p.trim()||a.pkg; save(); renderApps(); loadIcons().then(openSettings); openSettings();
+  a.n=n.trim()||a.n; a.pkg=p.trim()||a.pkg; save(); renderApps(); openSettings(); loadIcons();
 }
 
-/* ================= Noche ================= */
-let night=false; function toggleNight(){ night=!night; $('night').style.opacity=night?.6:0; }
-
 /* ================= Arranque ================= */
-applyLook(); renderCar(); renderApps(); loadIcons(); renderShift(); renderObd();
+applyLook(); renderCar(); renderApps(); renderNp(); loadIcons(); renderShift(); renderObd(); showSpeed(); applyNight(); pollMedia();
 document.addEventListener('deviceready',()=>{ BT = window.bluetoothSerial; loadIcons(); if(S.obdAddr && BT) connectObd(S.obdAddr); });
-document.addEventListener('visibilitychange',()=>{ if(!document.hidden) loadIcons(); });
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ loadIcons(); pollMedia(); applyNight(); } });
 </script>
 </body>
 </html>

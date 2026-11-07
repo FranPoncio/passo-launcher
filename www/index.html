@@ -59,6 +59,9 @@
   body.anim #aura { animation:drift 38s ease-in-out infinite alternate; }
   /* Tema Ámbar clásico: todo en tonos naranja, como la luz de los tableros viejos */
   body.amber > header, body.amber > main, body.amber > footer, body.amber #modal { filter:sepia(1) saturate(3.4) hue-rotate(-12deg) brightness(.93); }
+  /* De noche: sin colores, todo en grises tenues (tema Nocturno o modo noche activo) */
+  body.dim > header, body.dim > main, body.dim > footer, body.dim #modal { filter:grayscale(1) brightness(.62) contrast(1.05); }
+  body.dim #aura { opacity:0 !important; }
   /* Marcha calculada */
   .gear { position:absolute; top:4%; right:-2%; display:none; flex-direction:column; align-items:center; justify-content:center; width:8.6vh; height:8.6vh; border-radius:2.2vh; background:color-mix(in srgb, var(--acc) 16%, transparent); box-shadow:inset 0 0 0 2px color-mix(in srgb, var(--acc) 55%, transparent); }
   .gear.on { display:flex; }
@@ -526,6 +529,7 @@ const THEMES = {
   sunset: { n:'Atardecer', acc:'#fb923c', acc2:'#f43f5e', bg:'#0c0506' },
   retro:  { n:'Retro',   acc:'#facc15', acc2:'#a855f7', bg:'#0a0612' },
   ocean:  { n:'Océano',  acc:'#38bdf8', acc2:'#6366f1', bg:'#030612' },
+  nocturno: { n:'Nocturno (sin colores)', acc:'#71717a', acc2:'#52525b', bg:'#000000', flat:true, dim:true },
   ambar:  { n:'Ámbar clásico', acc:'#ff8a1f', acc2:'#ffb547', bg:'#060200', aura:.55, amber:true },
   medianoche: { n:'Medianoche', acc:'#4f46e5', acc2:'#1e40af', bg:'#000002', aura:.45, mainTxt:'#fff' },
   oled:   { n:'OLED negro', acc:'#10b981', acc2:'#10b981', bg:'#000000', flat:true }
@@ -537,7 +541,7 @@ function applyLook(){
   $('greet').style.display = S.greet ? '' : 'none';
   const t = THEMES[S.theme] || THEMES.aurora, R = document.documentElement.style;
   R.setProperty('--bg', t.bg); R.setProperty('--acc', t.acc); R.setProperty('--acc2', t.acc2);
-  R.setProperty('--aura', t.flat ? 0 : (t.aura ?? 1)); document.body.classList.toggle('amber', !!t.amber); R.setProperty('--mainTxt', t.mainTxt||'#05060a');
+  R.setProperty('--aura', t.flat ? 0 : (t.aura ?? 1)); if (typeof applyNight==='function' && $('nightBtn')) applyNight(); document.body.classList.toggle('amber', !!t.amber); R.setProperty('--mainTxt', t.mainTxt||'#05060a');
   S.acc = t.acc; document.body.classList.toggle('anim', !!S.anim && !t.flat);
   document.querySelector('main').classList.toggle('lhd', S.side==='lhd');
 }
@@ -563,7 +567,9 @@ function isDark(){
 }
 function applyNight(){
   const on = S.night==='on' || (S.night==='auto' && isDark());
-  $('night').style.opacity = on ? .45 : 0;
+  const t = THEMES[S.theme] || THEMES.aurora;
+  document.body.classList.toggle('dim', !!t.dim || (on && S.nightGray!==false));
+  $('night').style.opacity = on ? .3 : 0;
   $('nightBtn').classList.toggle('on', on);
 }
 function cycleNight(){
@@ -1154,6 +1160,7 @@ function openSettings(){
     `<div class="item"><span>Abrir ${esc((S.dock.find(a=>a.main)||S.dock[0]).n)} al prender<small>Al arrancar la tablet abre tu app principal del dock</small></span><button class="btn ${S.autoCarplay?'go':''} tap" onclick="S.autoCarplay=!S.autoCarplay;save();openSettings()">${S.autoCarplay?'Sí':'No'}</button></div>`+
     `<div class="item"><span>Botón del volante<small>Bluetooth: mantener play o doble toque abre el asistente</small></span><button class="btn tap" onclick="openButtons()">Configurar</button></div>`+
     `<div class="item"><span>Control de música<small>${!P?'Disponible en la APK':media.noAccess?'Falta permiso de acceso a notificaciones':'Activo'}</small></span>${P?`<button class="btn tap" onclick="askMediaAccess()">Permiso</button>`:''}</div>`+
+    `<div class="item"><span>De noche, apagar los colores<small>Pasa todo a grises tenues cuando se activa el modo noche</small></span><button class="btn ${S.nightGray!==false?'go':''} tap" onclick="S.nightGray=(S.nightGray===false);save();applyNight();openSettings()">${S.nightGray!==false?'Sí':'No'}</button></div>`+
     `<div class="item"><span>Modo noche<small>Automático: se oscurece con la puesta del sol</small></span><span class="seg">${[['auto','Auto'],['on','Siempre'],['off','Apagado']].map(([k,l])=>`<button class="tap ${S.night===k?'on':''}" onclick="S.night='${k}';save();applyNight();openSettings()">${l}</button>`).join('')}</span></div>`+
     `<div class="item"><span>Saludo<small>${esc(S.greet||'(oculto)')}</small></span><button class="btn tap" onclick="editGreet()">Cambiar</button></div>`+
     `<div class="item"><span>Tema de colores<small>${(THEMES[S.theme]||THEMES.aurora).n}</small></span><span class="swatches">${Object.keys(THEMES).map(k=>`<button class="sw tap ${S.theme===k?'on':''}" style="--s:linear-gradient(135deg, ${THEMES[k].acc}, ${THEMES[k].acc2})" onclick="setLook('theme','${k}')" aria-label="${THEMES[k].n}"></button>`).join('')}</span></div>`+

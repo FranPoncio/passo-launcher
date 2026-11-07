@@ -58,7 +58,41 @@ if (!m.includes('.MediaListener')) {
     </application>`);
 }
 
+// 3c) Botón Bluetooth del volante: servicio de accesibilidad que escucha las teclas multimedia
+if (!m.includes('.ButtonService')) {
+  m = m.replace('</application>', `
+        <service
+            android:name=".ButtonService"
+            android:label="Passo Launcher: botón del volante"
+            android:exported="true"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data android:name="android.accessibilityservice" android:resource="@xml/passo_buttons" />
+        </service>
+    </application>`);
+}
+
 fs.writeFileSync(manifestPath, m);
+
+// Recursos del servicio de accesibilidad
+fs.mkdirSync(path.join(root, 'res', 'xml'), { recursive: true });
+fs.writeFileSync(path.join(root, 'res', 'xml', 'passo_buttons.xml'), `<?xml version="1.0" encoding="utf-8"?>
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeWindowStateChanged"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagRequestFilterKeyEvents"
+    android:canRequestFilterKeyEvents="true"
+    android:notificationTimeout="100"
+    android:description="@string/passo_buttons_desc" />
+`);
+fs.mkdirSync(path.join(root, 'res', 'values'), { recursive: true });
+fs.writeFileSync(path.join(root, 'res', 'values', 'passo_strings.xml'), `<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="passo_buttons_desc">Permite que el botón Bluetooth del volante abra el asistente del Passo Launcher (mantener apretado play o doble toque). Un toque sigue siendo play/pausa.</string>
+</resources>
+`);
 
 // 4) MainActivity: pide permisos al arrancar, pantalla siempre encendida, pantalla completa
 const javaDir = path.join(root, 'java', 'com', 'fran', 'passo');
@@ -80,6 +114,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(AppIconsPlugin.class);
         registerPlugin(MediaPlugin.class);
         registerPlugin(VoicePlugin.class);
+        registerPlugin(ButtonsPlugin.class);
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         hideSystemBars();
@@ -389,4 +424,180 @@ public class VoicePlugin extends Plugin implements TextToSpeech.OnInitListener {
 }
 `);
 
-console.log('Android parcheado: HOME + horizontal + permisos + MainActivity + AppIcons + Media + Voice');
+// 9) Botón del volante: el servicio escucha play/pausa en cualquier app
+fs.writeFileSync(path.join(javaDir, 'ButtonService.java'), `package com.fran.passo;
+
+import android.accessibilityservice.AccessibilityService;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.media.AudioManager;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
+import android.view.KeyEvent;
+import android.view.accessibility.AccessibilityEvent;
+
+public class ButtonService extends AccessibilityService {
+
+    static ButtonService instance;
+    private final Handler h = new Handler(Looper.getMainLooper());
+    private boolean longFired = false;
+    private int pendingClicks = 0;
+
+    private final Runnable longRun = new Runnable() {
+        @Override public void run() { longFired = true; openAssistant(); }
+    };
+    private final Runnable singleRun = new Runnable() {
+        @Override public void run() { pendingClicks = 0; sendMedia(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE); }
+    };
+
+    @Override protected void onServiceConnected() { instance = this; }
+    @Override public void onAccessibilityEvent(AccessibilityEvent e) {}
+    @Override public void onInterrupt() {}
+    @Override public boolean onUnbind(Intent i) { instance = null; return super.onUnbind(i); }
+
+    private SharedPreferences prefs() { return getSharedPreferences("passo_buttons", MODE_PRIVATE); }
+
+    @Override
+    protected boolean onKeyEvent(KeyEvent e) {
+        int c = e.getKeyCode();
+        if (e.getAction() == KeyEvent.ACTION_DOWN && e.getRepeatCount() == 0) ButtonsPlugin.emitKey(c);
+        SharedPreferences p = prefs();
+        if (!p.getBoolean("enabled", true)) return false;
+
+        // Botón de asistente del control (el de "Siri"): abre el asistente directo
+        if (c == KeyEvent.KEYCODE_VOICE_ASSIST || c == KeyEvent.KEYCODE_ASSIST || c == KeyEvent.KEYCODE_SEARCH) {
+            if (e.getAction() == KeyEvent.ACTION_UP) openAssistant();
+            return true;
+        }
+        boolean isPlay = c == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE || c == KeyEvent.KEYCODE_HEADSETHOOK
+                || c == KeyEvent.KEYCODE_MEDIA_PLAY || c == KeyEvent.KEYCODE_MEDIA_PAUSE;
+        if (!isPlay) return false;
+        boolean useLong = p.getBoolean("long", true), useDouble = p.getBoolean("double", true);
+        if (!useLong && !useDouble) return false;
+
+        if (e.getAction() == KeyEvent.ACTION_DOWN) {
+            if (e.getRepeatCount() == 0) {
+                longFired = false;
+                if (useLong) h.postDelayed(longRun, 700);
+            }
+            return true;
+        }
+        if (e.getAction() == KeyEvent.ACTION_UP) {
+            h.removeCallbacks(longRun);
+            if (longFired) { longFired = false; return true; }
+            if (useDouble) {
+                if (pendingClicks == 1) { h.removeCallbacks(singleRun); pendingClicks = 0; openAssistant(); }
+                else { pendingClicks = 1; h.postDelayed(singleRun, 380); }
+            } else {
+                sendMedia(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE);
+            }
+            return true;
+        }
+        return true;
+    }
+
+    private void sendMedia(int code) {
+        AudioManager am = (AudioManager) getSystemService(AUDIO_SERVICE);
+        long t = SystemClock.uptimeMillis();
+        am.dispatchMediaKeyEvent(new KeyEvent(t, t, KeyEvent.ACTION_DOWN, code, 0));
+        am.dispatchMediaKeyEvent(new KeyEvent(t, t, KeyEvent.ACTION_UP, code, 0));
+    }
+
+    private void openAssistant() {
+        Intent i = new Intent(this, MainActivity.class);
+        i.putExtra("passo_action", "assistant");
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        startActivity(i);
+    }
+}
+`);
+
+// 10) Plugin del botón: estado, abrir Accesibilidad, opciones y avisos al launcher
+fs.writeFileSync(path.join(javaDir, 'ButtonsPlugin.java'), `package com.fran.passo;
+
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.provider.Settings;
+import android.view.KeyEvent;
+import com.getcapacitor.JSObject;
+import com.getcapacitor.Plugin;
+import com.getcapacitor.PluginCall;
+import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.CapacitorPlugin;
+
+@CapacitorPlugin(name = "Buttons")
+public class ButtonsPlugin extends Plugin {
+
+    static ButtonsPlugin self;
+
+    @Override
+    public void load() {
+        self = this;
+        if (getActivity() != null) checkIntent(getActivity().getIntent());
+    }
+
+    @Override
+    protected void handleOnNewIntent(Intent intent) {
+        super.handleOnNewIntent(intent);
+        checkIntent(intent);
+    }
+
+    private void checkIntent(Intent i) {
+        if (i != null && "assistant".equals(i.getStringExtra("passo_action"))) {
+            i.removeExtra("passo_action");
+            JSObject o = new JSObject();
+            o.put("action", "assistant");
+            notifyListeners("action", o, true);
+        }
+    }
+
+    static void emitKey(int code) {
+        if (self == null) return;
+        JSObject o = new JSObject();
+        o.put("code", code);
+        o.put("name", KeyEvent.keyCodeToString(code));
+        self.notifyListeners("key", o);
+    }
+
+    private SharedPreferences prefs() {
+        return getContext().getSharedPreferences("passo_buttons", Context.MODE_PRIVATE);
+    }
+
+    private boolean enabledInSettings() {
+        String s = Settings.Secure.getString(getContext().getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+        return s != null && s.contains(getContext().getPackageName());
+    }
+
+    @PluginMethod
+    public void status(PluginCall call) {
+        JSObject r = new JSObject();
+        SharedPreferences p = prefs();
+        r.put("enabled", ButtonService.instance != null || enabledInSettings());
+        r.put("long", p.getBoolean("long", true));
+        r.put("double", p.getBoolean("double", true));
+        call.resolve(r);
+    }
+
+    @PluginMethod
+    public void setConfig(PluginCall call) {
+        SharedPreferences p = prefs();
+        p.edit()
+            .putBoolean("long", call.getBoolean("long", p.getBoolean("long", true)))
+            .putBoolean("double", call.getBoolean("double", p.getBoolean("double", true)))
+            .apply();
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void openSettings(PluginCall call) {
+        Intent i = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        getContext().startActivity(i);
+        call.resolve();
+    }
+}
+`);
+
+console.log('Android parcheado: HOME + horizontal + permisos + MainActivity + AppIcons + Media + Voice + Buttons');

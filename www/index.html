@@ -1062,6 +1062,33 @@ async function aiSend(text){
   }
   aiBusy=false;
 }
+/* ================= Botón Bluetooth del volante ================= */
+let btnState = { enabled:false, long:true, double:true }, lastKey = null;
+function initButtons(){
+  const B = plugin('Buttons'); if(!B) return;
+  B.addListener('action', e=>{ if(e && e.action==='assistant') askAI(); });
+  B.addListener('key', e=>{ lastKey=e; const el=$('keyLog'); if(el) el.textContent = e.name.replace('KEYCODE_','')+' ('+e.code+')'; });
+  refreshButtons();
+}
+async function refreshButtons(){
+  const B = plugin('Buttons'); if(!B) return;
+  try { btnState = await B.status(); } catch(e){}
+}
+async function setBtn(k,v){ const B=plugin('Buttons'); if(!B) return; btnState[k]=v; try{ await B.setConfig({ [k]:v }); }catch(e){} openButtons(); }
+function enableButtons(){ const B=plugin('Buttons'); if(!B) return; toast('Buscá "Passo Launcher: botón del volante" y activalo'); B.openSettings(); }
+async function openButtons(){
+  const B=plugin('Buttons');
+  if(!B){ openModal(`<h2>Botón del volante</h2><div class="item">Disponible en la APK.</div>`); return; }
+  await refreshButtons();
+  const yn=(k)=>`<button class="btn ${btnState[k]?'go':''} tap" onclick="setBtn('${k}',${!btnState[k]})">${btnState[k]?'Sí':'No'}</button>`;
+  openModal(`<h2>Botón del volante <small>Bluetooth</small></h2>
+    <div class="item"><span>Estado<small>${btnState.enabled?'Activo: funciona aunque estés en otra app':'Falta activarlo en Accesibilidad de Android (una sola vez)'}</small></span>${btnState.enabled?'<b style="color:var(--ok2)">Activo</b>':'<button class="btn go tap" onclick="enableButtons()">Activar</button>'}</div>
+    <div class="item"><span>Mantener apretado play → asistente<small>Un toque sigue siendo play/pausa</small></span>${yn('long')}</div>
+    <div class="item"><span>Doble toque en play → asistente<small>Si tu botón no permite mantener apretado</small></span>${yn('double')}</div>
+    <div class="item"><span>Probar<small>Emparejá el botón en Bluetooth de Android y apretá cualquier tecla</small></span><b class="mono" id="keyLog">${lastKey?lastKey.name.replace('KEYCODE_','')+' ('+lastKey.code+')':'esperando…'}</b></div>
+    <div class="hint">Los botones que traen ícono de "Siri" o asistente abren el asistente directo.</div>`);
+}
+
 function openAISettings(){
   const pv=S.ai.prov;
   const help = { gemini:'Clave gratis en aistudio.google.com/apikey (Google AI Studio).', openai:'Clave en platform.openai.com (cobra por uso).', anthropic:'Clave en console.anthropic.com (cobra por uso).' }[pv];
@@ -1125,6 +1152,7 @@ function openSettings(){
     `<div class="item"><span>Asistente con IA<small>${AI_NAMES[S.ai.prov]} · ${S.ai.keys[S.ai.prov]?'listo':'falta la clave'}</small></span><button class="btn go tap" onclick="openAISettings()">Configurar</button></div>`+
     `<div class="item"><span>Nafta<small>Precio por litro y consumo estimado (se usa hasta que cargues tanques llenos)</small></span><span class="row"><input style="width:12vh" value="${esc(S.cur)}" onchange="S.cur=this.value.trim()||'$';save()"><input style="width:16vh" type="number" step="0.01" value="${S.fuelPrice}" onchange="S.fuelPrice=+this.value;save()"><input style="width:16vh" type="number" step="0.1" value="${S.consEst}" onchange="S.consEst=+this.value;save()"></span></div>`+
     `<div class="item"><span>Abrir ${esc((S.dock.find(a=>a.main)||S.dock[0]).n)} al prender<small>Al arrancar la tablet abre tu app principal del dock</small></span><button class="btn ${S.autoCarplay?'go':''} tap" onclick="S.autoCarplay=!S.autoCarplay;save();openSettings()">${S.autoCarplay?'Sí':'No'}</button></div>`+
+    `<div class="item"><span>Botón del volante<small>Bluetooth: mantener play o doble toque abre el asistente</small></span><button class="btn tap" onclick="openButtons()">Configurar</button></div>`+
     `<div class="item"><span>Control de música<small>${!P?'Disponible en la APK':media.noAccess?'Falta permiso de acceso a notificaciones':'Activo'}</small></span>${P?`<button class="btn tap" onclick="askMediaAccess()">Permiso</button>`:''}</div>`+
     `<div class="item"><span>Modo noche<small>Automático: se oscurece con la puesta del sol</small></span><span class="seg">${[['auto','Auto'],['on','Siempre'],['off','Apagado']].map(([k,l])=>`<button class="tap ${S.night===k?'on':''}" onclick="S.night='${k}';save();applyNight();openSettings()">${l}</button>`).join('')}</span></div>`+
     `<div class="item"><span>Saludo<small>${esc(S.greet||'(oculto)')}</small></span><button class="btn tap" onclick="editGreet()">Cambiar</button></div>`+
@@ -1145,7 +1173,7 @@ function editApp(k,i){
 }
 
 /* ================= Arranque ================= */
-applyLook(); artColor(""); renderCar(); renderApps(); renderNp(); initMap(); loadIcons(); renderShift(); renderObd(); showSpeed(); applyNight(); pollMedia(); renderTripStat(); loadWeather();
+applyLook(); artColor(""); renderCar(); renderApps(); renderNp(); initMap(); loadIcons(); renderShift(); renderObd(); showSpeed(); applyNight(); pollMedia(); renderTripStat(); loadWeather(); initButtons();
 if (S.autoCarplay && plugin('AppIcons')) { const m=S.dock.find(a=>a.main&&a.pkg); if(m) setTimeout(()=>openApp(m.pkg), 4000); }
 document.addEventListener('deviceready',()=>{ BT = window.bluetoothSerial; loadIcons(); if(S.obdAddr && BT) connectObd(S.obdAddr); });
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ loadIcons(); pollMedia(); applyNight(); } });

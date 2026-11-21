@@ -4,9 +4,9 @@ Launcher Android para la tablet del Toyota Passo 1.3 (K3-VE). Muestra velocidad 
 
 ## Bajar el APK (sin instalar nada en la PC)
 
-1. En GitHub, pestaña **Actions** > el último run de **Compilar APK** (con tilde verde).
-2. Abajo, en **Artifacts**, descargá `passo-launcher-apk` (es un .zip con `app-debug.apk` adentro).
-3. Pasá `app-debug.apk` a la tablet (pendrive, Drive o cable) y abrilo. Android va a pedir permiso para "instalar apps de origen desconocido": aceptá.
+1. Desde el navegador de la tablet abrí **https://github.com/FranPoncio/passo-launcher/releases/download/apk/passo-launcher.apk** (no hace falta iniciar sesión). Siempre es la última versión compilada.
+2. Abrí el archivo descargado. Android va a pedir permiso para "instalar apps de origen desconocido": aceptá.
+3. Para actualizar, repetí lo mismo: se instala encima y no se pierden los ajustes (la firma es siempre la misma).
 4. Abrí la app y aceptá ubicación y dispositivos cercanos (Bluetooth).
 5. Apretá el botón Home: elegí **Passo Launcher** > **Siempre**.
 

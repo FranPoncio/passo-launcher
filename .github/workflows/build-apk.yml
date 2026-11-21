@@ -5,6 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Para publicar el APK como descarga directa (Releases)
+permissions:
+  contents: write
+
 jobs:
   build:
     # ubuntu-24.04 ya trae el SDK de Android instalado
@@ -34,6 +38,11 @@ jobs:
       - name: Generar proyecto Android y convertirlo en launcher
         run: npm run android:prepare
 
+      - name: Firma fija (para actualizar sin desinstalar ni perder ajustes)
+        run: |
+          mkdir -p ~/.android
+          cp keystore/passo-debug.keystore ~/.android/debug.keystore
+
       - name: Compilar APK
         working-directory: android
         run: |
@@ -45,3 +54,15 @@ jobs:
         with:
           name: passo-launcher-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Publicar APK como descarga directa
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk passo-launcher.apk
+          if ! gh release view apk >/dev/null 2>&1; then
+            gh release create apk --target "$GITHUB_SHA" \
+              --title "Passo Launcher — última versión" \
+              --notes "Se actualiza sola con cada compilación. En la tablet: descargá passo-launcher.apk e instalalo encima de la versión anterior."
+          fi
+          gh release upload apk passo-launcher.apk --clobber
